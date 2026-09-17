@@ -13,9 +13,9 @@ import kotlinx.coroutines.SupervisorJob
 /**
  * Registers the real install [ProbeInstaller.Hook] as early as possible (via App Startup's
  * `ContentProvider`, which runs before `Application.onCreate()`). Deliberately does NOT call
- * [ProbeRuntime.initialize] itself — `ZBuildConfig`/`ZEnvConfig` aren't valid yet at this point
- * in process startup. The actual call happens later, from `AppModules.kt`'s `initKMM()`, once
- * config is valid; this class only makes that later call reach `:probe-runtime` at all.
+ * [ProbeRuntime.initialize] itself — a host app's own build/flag config typically isn't valid
+ * yet at this point in process startup. The actual call happens later, once the host calls
+ * [ProbeInstaller.install]; this class only makes that later call reach `:probe-runtime` at all.
  */
 class ProbeStartupInitializer : Initializer<Unit> {
     override fun create(context: Context) {

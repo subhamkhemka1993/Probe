@@ -28,7 +28,7 @@ class ProbeStartupInitializerTest {
         AppInitializer.getInstance(context).initializeComponent(ProbeStartupInitializer::class.java)
 
         // The Initializer only registered a hook — nothing has called ProbeRuntime.initialize
-        // yet. Calling install() here plays the role AppModules.kt's real call plays in
+        // yet. Calling install() here plays the role a host app's own install call plays in
         // production; observing ProbeRuntime.isEnabled() flip to true (driven by the config
         // we pass) is the only way to confirm the Initializer's hook actually reached
         // ProbeRuntime.initialize rather than being silently dropped.

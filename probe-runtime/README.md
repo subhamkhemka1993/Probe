@@ -4,7 +4,7 @@ probe is a Kotlin Multiplatform (Android + iOS) embedded debug shell: an in-app 
 inspector, request/response viewer, LAN browser-based traffic viewer, and a small set of
 developer actions (clear app data, permission inspection), all reachable from inside a running
 app without a debugger attached. It is built for Compose Multiplatform apps that use Ktor for
-networking and Koin for dependency injection.
+networking; no dependency-injection framework is required to integrate it.
 
 The problem it solves: verifying "what did this app actually send/receive over the network" or
 "what's in this app's debug preferences right now" on a real device — especially a tester's or a
@@ -109,13 +109,20 @@ flowchart TB
     subgraph Host["Host Application"]
         HTTP["Ktor HttpClient builder"]
         Lifecycle["App-lifecycle observer"]
-        DI["Koin DI graph (per build variant/platform)"]
+        AndroidInit["Android: one explicit\nProbeInstaller.install(config, platform) call"]
+        IosInit["iOS: one explicit\ninstallProbeTools(config, platform) call"]
+    end
+
+    subgraph Startup["androidx.startup (Android only)"]
+        Initializer["ProbeStartupInitializer\n(runs before Application.onCreate)"]
     end
 
     subgraph API[":probe-api (always present)"]
         Capture["ProbeHttpCapture"]
         State["ProbeState"]
         Config["ProbeConfig"]
+        Installer["ProbeInstaller"]
+        Hub["ProbeHub"]
     end
 
     subgraph Impl[":probe-runtime (present only where enabled)"]
@@ -128,9 +135,13 @@ flowchart TB
 
     HTTP -->|installCapture| Capture
     Lifecycle -->|onAppBackgrounded/Foregrounded| State
-    DI -->|probeKoinModule config| Runtime
+    Initializer -->|register hook, at process start| Installer
+    AndroidInit -->|install config, platform| Installer
+    Installer -->|forwards to the registered hook| Runtime
+    IosInit -->|calls directly, no Installer involved| Runtime
     Runtime -->|setHook| Capture
     Runtime -->|setCallbacks| State
+    Runtime -->|setHook| Hub
     Runtime --> NetInspector
     NetInspector --> Browser
     Runtime --> DevActions
@@ -141,19 +152,25 @@ Both modules share the `com.dev.probe` / `com.dev.probe.api` package hierarchy, 
 `:probe-runtime` depends on `:probe-api` (as an `api` dependency, since `:probe-api` types appear in
 `:probe-runtime`'s own public signatures).
 
-**Settable-hook pattern.** `ProbeHttpCapture` and `ProbeState` are always-present singleton
-objects with a no-op default implementation. When `:probe-runtime` is present and initialized, it
-calls `setHook`/`setCallbacks` on them to install the real implementation; when it isn't
-(release builds, or before initialization), calls into these objects are silent no-ops. This is
-the mechanism that lets host code (Ktor client setup, lifecycle observers) call into probe
-*unconditionally*, without any `if (debugBuildType)` branching in host code — the branching lives
-entirely in which Koin module gets included per build variant.
+**Settable-hook pattern.** `ProbeHttpCapture`, `ProbeState`, and `ProbeHub` are always-present
+singleton objects with a no-op default implementation. When `:probe-runtime` is initialized, it
+calls `setHook`/`setCallbacks` on them to install the real implementation; before that (release
+builds where `:probe-runtime` is absent, or before initialization on a build where it's present),
+calls into these objects are silent no-ops. This is the mechanism that lets host code (Ktor client
+setup, lifecycle observers, an "open the hub" button) call into probe *unconditionally*, without
+any `if (debugBuildType)` branching in host code — no dependency-injection framework is involved
+at all. `ProbeInstaller` uses a closely related pattern but with no meaningful no-op: it's the
+seam that carries the one-time initialization call itself (see Integration Guide, Step 2), and
+before anything registers a real hook on it, calling `install` is simply dropped rather than
+doing something safe-but-real like the other three.
 
 **Runtime lifecycle.** `ProbeRuntime.initialize(config, platform, scope)` builds the full
 dependency graph (database, repository, browser controller, notifier) exactly once per process
-and installs the hooks described above; `ProbeRuntime.shutdown()` tears it all down. In practice
-a host calls `initialize` once via the Koin integration module described below, and never calls
-`shutdown` explicitly in normal operation.
+and installs the hooks described above; `ProbeRuntime.shutdown()` tears it all down. A host
+triggers `initialize` exactly once, via `ProbeInstaller.install(config, platform)` on Android or
+directly via `installProbeTools(config, platform)` on iOS (see Integration Guide, Step 2) — never
+by constructing `ProbeRuntime` or any dependency-injection module — and never calls `shutdown`
+explicitly in normal operation.
 
 ## Requirements
 
@@ -171,9 +188,12 @@ a host calls `initialize` once via the Koin integration module described below, 
   Compose, including on iOS (via `ComposeUIViewController`).
 - **Networking:** Ktor 3.5.0 in this catalog — `ktor-client-core` (capture hook) and, inside
   `:probe-runtime`, `ktor-server-cio` + `ktor-server-websockets` (the embedded browser server).
-- **Dependency injection:** Koin 4.2.2 — `:probe-runtime` ships a Koin module
-  (`probeKoinModule(config)`) as its host integration point; this is the only supported wiring
-  path in this codebase (there is no documented non-Koin integration).
+- **Dependency injection:** none required. Integration is a plain function call
+  (`ProbeInstaller.install`/`installProbeTools`, see Integration Guide) — no DI framework
+  involvement, Koin or otherwise.
+- **Android-only:** `androidx.startup:startup-runtime` 1.2.0 — used for `ProbeStartupInitializer`,
+  which self-registers via a manifest-merged `ContentProvider` so the install hook is ready before
+  `Application.onCreate()`.
 - **Storage:** Room (`androidx.room`, KSP-generated) for captured network calls and sessions;
   Jetpack DataStore Preferences for debug preferences (network output mode). Both work
   cross-platform via KMP artifacts — no platform-specific database code beyond builder wiring.
@@ -224,7 +244,7 @@ application module:
 // your application module's build.gradle.kts
 dependencies {
     implementation(projects.probeApi)
-    debugImplementation(projects.probe-runtime)
+    debugImplementation(projects.probeRuntime)
 }
 ```
 
@@ -236,7 +256,7 @@ source sets, so `:probe-runtime` is instead depended on unconditionally from you
 kotlin {
     sourceSets {
         iosMain.dependencies {
-            implementation(projects.probe-runtime)
+            implementation(projects.probeRuntime)
         }
     }
 }
@@ -244,27 +264,56 @@ kotlin {
 
 ### Step 2 — Initialize probe
 
-The supported initialization path is Koin. `:probe-runtime` exposes one function as its integration
-entry point:
+Initialization is a plain function call — no dependency-injection framework required. The
+mechanism differs slightly per platform because only Android has a way to run code before
+`Application.onCreate()`:
+
+**Android.** `ProbeStartupInitializer` (declared in `:probe-runtime`'s own manifest) registers
+itself automatically via [App
+Startup](https://developer.android.com/topic/libraries/app-startup) — you don't call anything for
+this part, it just happens as soon as `:probe-runtime` is on the classpath. What it registers is
+only a *hook*; nothing is initialized yet. Your app still has to make one explicit call, from code
+that runs on every build variant (this call is a safe no-op if `:probe-runtime` isn't on the
+classpath, so it's fine to make it unconditionally):
 
 ```kotlin
-import com.dev.probe.integration.koin.probeKoinModule
 import com.dev.probe.api.ProbeConfig
+import com.dev.probe.api.ProbeInstaller
+import com.dev.probe.api.ProbePlatformContext
 
-val debugModule: Module = probeKoinModule(
-    ProbeConfig(isEnabled = { /* your own predicate, see Step 3 */ true }),
+ProbeInstaller.install(
+    config = ProbeConfig(isEnabled = { /* your own predicate, see Step 3 */ true }),
+    platform = ProbePlatformContext(context), // an Android Context
 )
 ```
 
-Include that module in the Koin graph you actually start (once per process). Internally, this
-registers a Koin `single(createdAtStart = true)` that calls
-`ProbeRuntime.initialize(config, platform, scope)`, which builds the full dependency graph and
-installs the capture hooks described in [Architecture](#architecture).
+Call this once, as early as convenient (e.g. `Application.onCreate()`, or an `Activity`'s
+`onCreate()` as in this repository's own sample — see [Android
+Integration](#android-integration)).
 
-There is no supported non-Koin initialization path in this codebase — if your project doesn't use
-Koin, you would need to call `ProbeRuntime.initialize(...)` directly with your own
-`ProbePlatformContext` and `CoroutineScope`, which is possible (it's a public function) but not
-documented or exercised by any example here.
+**iOS.** There's no App-Startup equivalent, so `:probe-runtime` exposes a single direct entry
+point instead:
+
+```kotlin
+import com.dev.probe.api.ProbeConfig
+import com.dev.probe.api.ProbePlatformContext
+import com.dev.probe.startup.installProbeTools
+
+installProbeTools(
+    config = ProbeConfig(isEnabled = { /* your own predicate, see Step 3 */ true }),
+    platform = ProbePlatformContext(),
+)
+```
+
+Call this once, as early as possible — before any Probe UI could be reached. This repository's
+own sample calls it from `iOSApp.swift`'s `init()`, via a small Kotlin wrapper exposed to Swift
+(see [iOS Integration](#ios-integration)).
+
+Both calls end up doing the same thing under the hood: building the full dependency graph exactly
+once per process and installing the hooks described in [Architecture](#architecture). There is no
+other supported initialization path — calling `ProbeRuntime.initialize(...)` directly is possible
+(it's a public function) but bypasses the one-time-call guarantee `ProbeInstaller`/
+`installProbeTools` give you for free, and is not documented or exercised by any example here.
 
 ### Step 3 — Configure
 
@@ -299,7 +348,15 @@ defaults:
 
 There is no gesture (shake, multi-finger tap) built into probe. The supported entry points are:
 
-- **Programmatic:** `ProbeLauncher.openHub(platformContext)` / `ProbeLauncher.openInspector(platformContext)` — call this from wherever your app wants to expose an entry point (a debug menu item, a notification tap handler, etc.). On Android this starts a dedicated `Activity`; on iOS it presents a full-screen `UIViewController` on top of the current view controller stack.
+- **Programmatic (recommended):** `ProbeHub.openHub(platformContext)` — from `:probe-api`, so it's
+  safe to call unconditionally even in a build where `:probe-runtime` is absent (silent no-op,
+  same settable-hook pattern as `ProbeHttpCapture`/`ProbeState`). This repository's own sample app
+  calls this from its "Open Probe Hub" button.
+- **Programmatic (lower-level):** `ProbeLauncher.openHub(platformContext)` /
+  `ProbeLauncher.openInspector(platformContext)` — from `:probe-runtime` directly. Only call this
+  from code you already know only runs where `:probe-runtime` is present; unlike `ProbeHub`, it has
+  no no-op fallback. On Android this starts a dedicated `Activity`; on iOS it presents a
+  full-screen `UIViewController` on top of the current view controller stack.
 - **Tapping the persistent capture notification**, which is wired automatically once capture is active — see [Capability Reference](#capability-reference).
 - **On Android only:** tapping a "Probe" home-screen icon (an `activity-alias` declared in `:probe-runtime`'s own manifest) — see [Android Integration](#android-integration).
 
@@ -308,21 +365,36 @@ There is no gesture (shake, multi-finger tap) built into probe. The supported en
 **Installation:** as in [Step 1](#step-1--add-probe-to-your-project) — `:probe-api` from your
 shared `commonMain`, `:probe-runtime` from your shared module's `iosMain`.
 
-**Initialization:** via the Koin module from [Step 2](#step-2--initialize-probe), included in
-whatever Koin graph your iOS entry point starts. A real example from this repository's own
-integration (illustrating the pattern only — the flag names are this host's own, not part of
-probe):
+**Initialization:** a direct call to `installProbeTools(config, platform)` — see [Step
+2](#step-2--initialize-probe) — made as early as possible, before any Probe UI could be reached.
+Because Swift can't call a top-level Kotlin function without a wrapper object, this repository's
+own sample wraps it in a small `commonMain`/`iosMain` function and calls that from `iOSApp.swift`'s
+`init()`:
 
 ```kotlin
-// Illustrative host-app example, not a probe API
-val commoniOSKoinModule = module { /* ... */ }.apply {
-    commonKoinModule(
-        debugToolsModule = probeKoinModule(
-            ProbeConfig(isEnabled = { myHostBuildFlag && myHostRuntimeFlag }),
-        ),
+// shared/src/iosMain/kotlin/.../ProbeBootstrap.kt — this repository's real sample wrapper
+fun installProbeSample() {
+    installProbeTools(
+        config = ProbeConfig(isEnabled = { true }),
+        platform = ProbePlatformContext(),
     )
 }
 ```
+
+```swift
+// iosApp/iosApp/iOSApp.swift — this repository's real sample
+@main
+struct iOSApp: App {
+    init() {
+        ProbeBootstrapKt.installProbeSample()
+    }
+    // ...
+}
+```
+
+Calling it from `init()` (rather than, say, `AppDelegate.swift`'s
+`didFinishLaunchingWithOptions`) matters: `init()` runs first, so Probe is ready before any UI —
+including your own app's first screen — has a chance to run.
 
 **Ktor capture wiring**, in your `HttpClientConfig` builder:
 
@@ -348,19 +420,20 @@ controller (walking through any presented, `UINavigationController`, or `UITabBa
 chain). It auto-dismisses once you close the hub/inspector from inside the shell.
 
 **Notification tap requires host wiring on iOS**, because notification-tap routing goes through
-your own `UNUserNotificationCenterDelegate`, not through probe. This repository's own iOS bridge
-(`zebpayApp/src/iosMain/kotlin/com/zebpay/app/debug/ProbeNotificationBridge.kt`) is a real
-example of the pattern needed — a small Objective-C-visible object exposing only
-`String`/`Boolean`/`Unit` (so no `:probe-runtime` type has to cross your framework's export boundary),
-called from `AppDelegate.swift`'s notification-response handler:
+your own `UNUserNotificationCenterDelegate`, not through probe. This is not something a sample
+app in this repository currently exercises (the sample's own notification handling, if any, is
+out of scope of this module) — the pattern below is illustrative, not a link to real code here:
+a small Objective-C-visible object exposing only `String`/`Boolean`/`Unit` (so no `:probe-runtime`
+type has to cross your framework's export boundary), called from your notification-response
+handler:
 
 ```kotlin
-// Illustrative — mirrors this repo's own bridge object
+// Illustrative — a pattern a host app would write, not part of probe itself
 object MyProbeNotificationBridge {
     fun isProbeNotification(identifier: String): Boolean =
-        identifier == PROBE_NOTIFICATION_ID && ProbeRuntime.isEnabled()
+        identifier == PROBE_NOTIFICATION_ID && ProbeHub.isEnabled()
 
-    fun openHub() = ProbeLauncher.openHub(ProbePlatformContext())
+    fun openHub() = ProbeHub.openHub(ProbePlatformContext())
 }
 ```
 ```swift
@@ -387,30 +460,39 @@ storage and anything registered via `ProbeHostCallbacks.onClearScopedData` — s
 ## Android Integration
 
 **Installation:** as in [Step 1](#step-1--add-probe-to-your-project) —
-`implementation(projects.probeApi)` unconditionally, `debugImplementation(projects.probe-runtime)`
-for the heavy module. Because this pattern only structurally excludes the module from the
-`debug` build type, a project with additional non-`debug`, non-`release` build types (e.g. an
-internal-distribution build type built via `initWith(release)`) needs its own explicit,
-empty Koin-module counterpart for that build type too — Android/Gradle build-type source sets are
-matched by **name**, not by which build type another was `initWith()`'d from, so a third build
-type gets neither `src/debug`'s nor `src/release`'s Kotlin sources automatically. This repository
-has exactly that situation (a `internalSharing` build type) and its own empty counterpart file as
-a real example:
+`implementation(projects.probeApi)` unconditionally, `debugImplementation(projects.probeRuntime)`
+for the heavy module. Because `ProbeInstaller.install(...)` is a safe no-op when `:probe-runtime`
+isn't on the classpath (see [Architecture](#architecture)), a project with additional non-`debug`,
+non-`release` build types (e.g. an internal-distribution build type) needs **no per-build-type
+code at all** — unlike the old Koin-module-per-build-type pattern this replaced, there's no empty
+counterpart file to remember to add for a third build type. The one `ProbeInstaller.install(...)`
+call is written once and compiled into every build type unconditionally.
+
+**Initialization:** exactly one call to `ProbeInstaller.install(config, platform)`, from code that
+runs on every build variant. This repository's own sample calls it from `MainActivity.onCreate()`:
 
 ```kotlin
-// androidApp/src/debug/java/.../ProbeAppModule.kt — real implementation
-fun probeAppModule(): Module = probeKoinModule(
-    ProbeConfig(isEnabled = { myHostBuildFlag && myHostRuntimeFlag }),
-)
+// androidApp/src/main/kotlin/.../MainActivity.kt — this repository's real sample
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-// androidApp/src/release/java/.../ProbeAppModule.kt — empty, no :probe-runtime reference at all
-fun probeAppModule(): Module = module { }
+        ProbeInstaller.install(
+            config = ProbeConfig(isEnabled = { true }),
+            platform = ProbePlatformContext(this),
+        )
 
-// androidApp/src/internalSharing/java/.../ProbeAppModule.kt — same empty pattern, needed separately
-fun probeAppModule(): Module = module { }
+        setContent {
+            App(onOpenHub = { ProbeHub.openHub(ProbePlatformContext(this)) })
+        }
+    }
+}
 ```
 
-**Initialization:** include the per-build-type `probeAppModule()` result in your Koin graph.
+A real app would more likely make this call from `Application.onCreate()` rather than an
+`Activity`, so it fires exactly once per process regardless of which screen launches first — the
+sample uses `MainActivity` only because the wizard-generated sample has no custom `Application`
+class.
 
 **Ktor capture wiring** — identical to iOS, in your `HttpClientConfig` builder:
 `ProbeHttpCapture.run { installCapture() }`.
@@ -420,10 +502,11 @@ fun probeAppModule(): Module = module { }
 `LifecycleEventObserver`.
 
 **Manifest merge:** `:probe-runtime`'s own `AndroidManifest.xml` declares its Activities, a
-`FileProvider`, and (new) a launcher `activity-alias` — all of this merges into your app's
-manifest automatically wherever `:probe-runtime` is on the classpath, no manual manifest work needed
-on your part. It does require `POST_NOTIFICATIONS` (declared by `:probe-runtime`'s manifest) for the
-sticky capture notification on Android 13+.
+`FileProvider`, a launcher `activity-alias`, and the App Startup `<provider>` entry that registers
+`ProbeStartupInitializer` — all of this merges into your app's manifest automatically wherever
+`:probe-runtime` is on the classpath, no manual manifest work needed on your part. It does require
+`POST_NOTIFICATIONS` (declared by `:probe-runtime`'s manifest) for the sticky capture notification
+on Android 13+.
 
 **Opening the shell:** `ProbeLauncher.openHub(ProbePlatformContext(context))` starts a dedicated
 `Activity` (`ProbeActivity`) via `Intent` with `FLAG_ACTIVITY_NEW_TASK`.
@@ -570,8 +653,11 @@ taps route through the host's own `UNUserNotificationCenterDelegate`, so every i
 and maintain its own small bridge object (as documented in [iOS Integration](#ios-integration)).
 This is a real, ongoing integration burden difference, not a missing feature — but it means the
 "notification tap opens the hub" capability is not zero-effort on iOS the way it is on Android.
-*Evidence:* `probe-runtime/src/commonMain/kotlin/com/zebpay/devtools/api/ProbeNotificationId.kt`'s
-own doc comment describes this explicitly.
+*Evidence:* `PROBE_NOTIFICATION_ID`
+(`probe-api/src/commonMain/kotlin/com/dev/probe/api/ProbeNotificationId.kt`) exists specifically
+so a host's own notification-response handler can recognize a tap on Probe's notification and
+route it to `ProbeHub.openHub(...)` — a value `:probe-runtime` couldn't route itself, since
+routing happens inside the host's `UNUserNotificationCenterDelegate`, not inside Probe.
 
 **No home-screen launcher icon on iOS.** Confirmed by the absence of any iOS equivalent to the
 Android `activity-alias` in `probe-runtime/src/androidMain/AndroidManifest.xml` — iOS apps cannot
@@ -622,9 +708,26 @@ as a coverage gap rather than a confirmed defect.
 
 ## Usage Examples
 
-**Open the debug hub programmatically** (e.g. from a debug-only menu item):
+**Initialize on Android** (once, from code that runs in every build type):
 ```kotlin
-ProbeLauncher.openHub(platformContext)
+ProbeInstaller.install(
+    config = ProbeConfig(isEnabled = { BuildConfig.DEBUG }),
+    platform = ProbePlatformContext(context),
+)
+```
+
+**Initialize on iOS** (once, as early as possible):
+```kotlin
+installProbeTools(
+    config = ProbeConfig(isEnabled = { true }),
+    platform = ProbePlatformContext(),
+)
+```
+
+**Open the debug hub programmatically** (e.g. from a debug-only menu item) — safe to call even
+when `:probe-runtime` might be absent:
+```kotlin
+ProbeHub.openHub(platformContext)
 ```
 
 **Open straight into the network inspector:**
@@ -684,12 +787,13 @@ the public configuration API.
 **Structural exclusion is Android-only, and is the host's responsibility to wire, not automatic.**
 probe provides the mechanism (a tiny always-present API module plus a heavy implementation
 module meant for conditional inclusion) but a host application must actually apply it — via
-Gradle's `debugImplementation` and an empty Koin-module counterpart per non-debug build type, as
-documented in [Android Integration](#android-integration). This repository additionally ships a
-verification Gradle task (`verifyZDevtoolsExcludedFromRelease`, in the host `androidApp` module,
-run in CI) that inspects every release/internal-distribution runtime classpath and fails the build
-if `:probe-runtime` is found — a real, working example of a CI guard against regressing this, but it
-is host-app-authored, not something `:probe-runtime` provides for you automatically.
+Gradle's `debugImplementation`, as documented in [Android Integration](#android-integration).
+Probe itself does not ship any CI check that verifies this; a host that wants a hard structural
+guarantee (rather than trusting that no future change accidentally makes `:probe-runtime` a
+transitive dependency of a release build) should add its own Gradle task that inspects the
+release build type's runtime classpath and fails if `:probe-runtime` is present, and run it in CI.
+This is entirely host-app-authored — `:probe-runtime` provides nothing for you here beyond being
+a module you can choose not to depend on.
 
 **Header redaction is applied everywhere a call is surfaced** (in-app detail view, browser API
 responses, JSON/HAR export) — `Authorization`, `Cookie`, `X-Api-Key`, `X-Auth-Token`, and
@@ -733,13 +837,14 @@ outside probe, and deciding whether the tool should ever reach a non-developer's
 - On Android, confirm you're running a build variant where `:probe-runtime` is actually on the
   classpath (e.g. `debugImplementation` was used, and this is a `debug`-family build, not
   `release`/`internalSharing`).
-- Confirm `probeKoinModule(config)` (or your build-type-specific `probeAppModule()` equivalent)
-  is actually included in the Koin graph that gets started.
+- Confirm `ProbeInstaller.install(config, platform)` (Android) or `installProbeTools(config,
+  platform)` (iOS) has actually been called — see [Step 2](#step-2--initialize-probe). Neither
+  happens automatically just from adding the module dependency.
 
 **Initialization seems to fail / calling into probe throws.**
 - `ProbeRuntime.services()` throws `IllegalStateException` if called before
-  `ProbeRuntime.initialize()` has run — check that your Koin module is included and that
-  `startKoin`/graph creation actually executes before any probe UI is reachable.
+  `ProbeRuntime.initialize()` has run — check that `ProbeInstaller.install(...)`/
+  `installProbeTools(...)` actually executes before any probe UI is reachable.
 - `ProbeHttpCapture`/`ProbeState` never throw — they're safe no-ops before initialization by
   design, so if network capture "isn't working," this is not the failure mode; check `isEnabled`
   instead.
@@ -778,9 +883,11 @@ or disabled in builds a non-developer would use. On Android, absence can be made
 **Which platforms are supported?** Android and iOS, via Kotlin Multiplatform + Compose
 Multiplatform. No other platform targets exist in this codebase.
 
-**Does it require changes to the host application?** Yes: adding the module dependencies,
-including its Koin module, wiring the Ktor capture hook, and wiring an app-lifecycle observer are
-all required integration steps — none of this happens automatically just by adding the dependency.
+**Does it require changes to the host application?** Yes: adding the module dependencies, calling
+the install entry point (`ProbeInstaller.install`/`installProbeTools`), wiring the Ktor capture
+hook, and wiring an app-lifecycle observer are all required integration steps — none of this
+happens automatically just by adding the dependency. On Android, hook *registration* (not
+initialization) is the one piece that does happen automatically, via App Startup.
 
 **How is probe enabled?** Via `ProbeConfig.isEnabled`, a caller-supplied predicate re-evaluated
 on every relevant call — plus, on Android, whether `:probe-runtime` is even on the current build
@@ -797,8 +904,8 @@ it.
 
 **Can projects extend it?** Yes, via the `ProbeInspector`/`ProbePlugin` interfaces — see
 [Extensibility](#extensibility). There's no plugin-marketplace or dynamic-loading mechanism;
-extension means adding a Kotlin class and registering it in the plugin list probe's Koin/graph
-factory assembles.
+extension means adding a Kotlin class and registering it in the plugin list `ProbeGraphFactory`
+assembles.
 
 **What differs between iOS and Android?** See the [feature matrix](#ios-vs-android-feature-matrix)
 and [Usage Gaps](#usage-gaps) above — the two most consequential differences are that iOS has no
@@ -848,10 +955,11 @@ The other extension point available to host apps without touching `:probe-runtim
 - `probe-runtime/src/commonMain` — shared implementation: network inspector, browser server, DB,
   prefs, session manager, dev actions, Compose UI.
 - `probe-runtime/src/androidMain` / `iosMain` — platform actuals (notifier, launcher, address
-  discovery, share sheet, permissions, database/DataStore builders).
-- `probe-runtime/src/integrationKoinMain` — the Koin integration module and platform-context factory,
-  shared by both platforms but layered above `commonMain` (see the `applyDefaultHierarchyTemplate`
-  + custom `dependsOn` wiring in `probe-runtime/build.gradle.kts`).
+  discovery, share sheet, permissions, database/DataStore builders) plus, on Android only,
+  `startup/ProbeStartupInitializer.kt` (the App Startup self-registration).
+- `probe-runtime/src/commonMain/.../startup/InstallProbeTools.kt` — the direct, non-Android
+  initialization entry point (`installProbeTools`), shared by iOS and by
+  `ProbeStartupInitializer`'s own registered hook on Android.
 - `probe-runtime/src/commonTest` / `androidHostTest` / `iosTest` — unit tests (JVM-based `commonTest`
   and `androidHostTest` cover the large majority; a small `iosTest` set exists for the
   Room/DataStore-backed repository on the iOS target specifically).
