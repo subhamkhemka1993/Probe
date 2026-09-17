@@ -61,21 +61,22 @@ internal fun ProbeTheme(
     val colors = remember(override) { ProbeThemeDefaults.colors(override) }
     val typography = remember { ProbeThemeDefaults.typography() }
     val materialTypography = remember { material3Typography() }
-    val colorScheme = remember(colors) {
-        lightColorScheme(
-            primary = colors.primary,
-            onPrimary = colors.onPrimary,
-            background = colors.background,
-            surface = colors.surface,
-            onBackground = colors.textPrimary,
-            onSurface = colors.textPrimary,
-            onSurfaceVariant = colors.textSecondary,
-            outlineVariant = colors.divider,
-            error = colors.error,
-            surfaceContainerLow = colors.surface,
-            surfaceContainerHighest = colors.codeBackground,
-        )
-    }
+    val colorScheme =
+        remember(colors) {
+            lightColorScheme(
+                primary = colors.primary,
+                onPrimary = colors.onPrimary,
+                background = colors.background,
+                surface = colors.surface,
+                onBackground = colors.textPrimary,
+                onSurface = colors.textPrimary,
+                onSurfaceVariant = colors.textSecondary,
+                outlineVariant = colors.divider,
+                error = colors.error,
+                surfaceContainerLow = colors.surface,
+                surfaceContainerHighest = colors.codeBackground,
+            )
+        }
     CompositionLocalProvider(
         LocalProbeColors provides colors,
         LocalProbeTypography provides typography,

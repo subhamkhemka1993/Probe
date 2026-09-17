@@ -12,7 +12,6 @@ import kotlin.concurrent.Volatile
 
 @OptIn(InternalCoroutinesApi::class)
 object ProbeRuntime {
-
     private val lock = SynchronizedObject()
 
     @Volatile
@@ -30,12 +29,14 @@ object ProbeRuntime {
             ProbeState.setCallbacks(
                 object : ProbeState.Callbacks {
                     override fun onAppBackgrounded() = this@ProbeRuntime.onAppBackgrounded()
+
                     override fun onAppForegrounded() = this@ProbeRuntime.onAppForegrounded()
                 },
             )
             ProbeHub.setHook(
                 object : ProbeHub.Hook {
                     override fun isEnabled(): Boolean = this@ProbeRuntime.isEnabled()
+
                     override fun openHub(context: ProbePlatformContext) = ProbeLauncher.openHub(context)
                 },
             )

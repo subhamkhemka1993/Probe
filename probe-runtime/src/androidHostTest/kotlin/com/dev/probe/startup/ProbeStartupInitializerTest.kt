@@ -3,10 +3,10 @@ package com.dev.probe.startup
 import android.app.Application
 import androidx.startup.AppInitializer
 import androidx.test.core.app.ApplicationProvider
+import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbeInstaller
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
-import com.dev.probe.api.ProbeConfig
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +15,6 @@ import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeStartupInitializerTest {
-
     @After
     fun tearDown() {
         ProbeRuntime.shutdown()

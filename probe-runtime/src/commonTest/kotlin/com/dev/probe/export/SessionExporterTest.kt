@@ -7,13 +7,13 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SessionExporterTest {
-
     @Test
     fun jsonExportContainsRedactedFieldsForEachCall() {
-        val calls = listOf(
-            sampleCall(id = "1", authorization = "Bearer secret-1"),
-            sampleCall(id = "2", authorization = "Bearer secret-2"),
-        )
+        val calls =
+            listOf(
+                sampleCall(id = "1", authorization = "Bearer secret-1"),
+                sampleCall(id = "2", authorization = "Bearer secret-2"),
+            )
 
         val json = SessionExporter.export(calls, ExportFormat.JSON)
 
@@ -49,13 +49,14 @@ class SessionExporterTest {
 
     @Test
     fun harExportIncludesQueryStringAndPostData() {
-        val calls = listOf(
-            sampleCall(
-                id = "1",
-                url = "https://api.zebpay.com/v1/foo?a=1&b=2",
-                query = "a=1&b=2",
-            ),
-        )
+        val calls =
+            listOf(
+                sampleCall(
+                    id = "1",
+                    url = "https://api.zebpay.com/v1/foo?a=1&b=2",
+                    query = "a=1&b=2",
+                ),
+            )
 
         val har = SessionExporter.export(calls, ExportFormat.HAR)
 
@@ -69,10 +70,11 @@ class SessionExporterTest {
     fun curlBundleJoinsPerCallCurlCommandsWithBlankLineSeparator() {
         // Headers are already redacted upstream at capture time (NetworkDebugPlugin),
         // mirroring the real data SessionExporter receives from the repository.
-        val calls = listOf(
-            sampleCall(id = "1", authorization = "***"),
-            sampleCall(id = "2", authorization = "***"),
-        )
+        val calls =
+            listOf(
+                sampleCall(id = "1", authorization = "***"),
+                sampleCall(id = "2", authorization = "***"),
+            )
 
         val bundle = SessionExporter.export(calls, ExportFormat.CURL_BUNDLE)
 
@@ -95,10 +97,11 @@ class SessionExporterTest {
         host = "api.zebpay.com",
         path = "/v1/foo",
         query = query,
-        requestHeaders = mapOf(
-            "Authorization" to authorization,
-            "Content-Type" to "application/json",
-        ),
+        requestHeaders =
+            mapOf(
+                "Authorization" to authorization,
+                "Content-Type" to "application/json",
+            ),
         requestBody = """{"email":"user@example.com"}""",
         responseStatus = 200,
         responseHeaders = mapOf("Set-Cookie" to "session=abc123"),

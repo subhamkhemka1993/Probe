@@ -18,8 +18,14 @@ kotlin {
 
     android {
         namespace = "com.dev.probe.runtime"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk =
+            libs.versions.android.minSdk
+                .get()
+                .toInt()
+        compileSdk =
+            libs.versions.android.compileSdk
+                .get()
+                .toInt()
         androidResources {
             enable = true
         }

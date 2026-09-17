@@ -6,4 +6,5 @@ import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.db.ProbeDatabase
 
 internal expect fun createDatabase(platform: ProbePlatformContext): ProbeDatabase
+
 internal expect fun createPreferencesDataStore(platform: ProbePlatformContext): DataStore<Preferences>

@@ -12,8 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.semiBold
@@ -33,36 +33,39 @@ internal fun ProbeListRow(
     contentWeights: ContentWeights = ContentWeights(leftWeight = true, rightWeight = false),
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(innerPadding),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(innerPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
-            modifier = Modifier.then(
-                if (contentWeights.leftWeight) {
-                    Modifier.weight(1f)
-                } else {
-                    Modifier
-                }
-            ), content = leftContent
+            modifier =
+                Modifier.then(
+                    if (contentWeights.leftWeight) {
+                        Modifier.weight(1f)
+                    } else {
+                        Modifier
+                    },
+                ),
+            content = leftContent,
         )
         Row(
-            modifier = Modifier.then(
-                if (contentWeights.rightWeight) {
-                    Modifier.weight(1f)
-                } else {
-                    Modifier
-                }
-            ),
+            modifier =
+                Modifier.then(
+                    if (contentWeights.rightWeight) {
+                        Modifier.weight(1f)
+                    } else {
+                        Modifier
+                    },
+                ),
             horizontalArrangement = Arrangement.End,
             content = rightContent,
         )
     }
 }
-
 
 @ThemePreviews
 @Composable
@@ -87,4 +90,3 @@ private fun ProbeListRowClickablePreview() {
         )
     }
 }
-

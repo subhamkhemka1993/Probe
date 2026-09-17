@@ -38,82 +38,89 @@ import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 internal class NetworkOutputControllerTest {
-
     @Test
-    fun applyModePersistsModeAndTogglesBrowserController() = runTest {
-        val prefs = createPreferencesStore()
-        val fakeServer = FakeBrowserServer()
-        val outputController = createOutputController(
-            prefs = prefs,
-            fakeServer = fakeServer,
-            scope = this,
-        )
+    fun applyModePersistsModeAndTogglesBrowserController() =
+        runTest {
+            val prefs = createPreferencesStore()
+            val fakeServer = FakeBrowserServer()
+            val outputController =
+                createOutputController(
+                    prefs = prefs,
+                    fakeServer = fakeServer,
+                    scope = this,
+                )
 
-        outputController.applyMode(NetworkOutputMode.BROWSER)
-
-        assertTrue(fakeServer.isRunning)
-        assertEquals(NetworkOutputMode.BROWSER, prefs.preferences.first().networkOutputMode)
-
-        outputController.applyMode(NetworkOutputMode.INSPECTOR)
-
-        assertFalse(fakeServer.isRunning)
-        assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
-    }
-
-    @Test
-    fun restorePersistedModeStartsBrowserWhenBrowserModeWasSaved() = runTest {
-        val prefs = createPreferencesStore()
-        val fakeServer = FakeBrowserServer()
-        val outputController = createOutputController(
-            prefs = prefs,
-            fakeServer = fakeServer,
-            scope = this,
-        )
-        prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
-
-        try {
-            outputController.restorePersistedMode()
+            outputController.applyMode(NetworkOutputMode.BROWSER)
 
             assertTrue(fakeServer.isRunning)
-        } finally {
+            assertEquals(NetworkOutputMode.BROWSER, prefs.preferences.first().networkOutputMode)
+
             outputController.applyMode(NetworkOutputMode.INSPECTOR)
+
+            assertFalse(fakeServer.isRunning)
+            assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
         }
-    }
 
     @Test
-    fun applyModeCancelsPendingRestoreBeforeApplyingNewMode() = runTest {
-        val prefs = createPreferencesStore()
-        val fakeServer = FakeBrowserServer()
-        val outputController = createOutputController(
-            prefs = prefs,
-            fakeServer = fakeServer,
-            scope = this,
-        )
-        prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
+    fun restorePersistedModeStartsBrowserWhenBrowserModeWasSaved() =
+        runTest {
+            val prefs = createPreferencesStore()
+            val fakeServer = FakeBrowserServer()
+            val outputController =
+                createOutputController(
+                    prefs = prefs,
+                    fakeServer = fakeServer,
+                    scope = this,
+                )
+            prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
 
-        outputController.scheduleRestore()
-        outputController.applyMode(NetworkOutputMode.INSPECTOR)
-        advanceUntilIdle()
+            try {
+                outputController.restorePersistedMode()
 
-        assertFalse(fakeServer.isRunning)
-        assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
-    }
+                assertTrue(fakeServer.isRunning)
+            } finally {
+                outputController.applyMode(NetworkOutputMode.INSPECTOR)
+            }
+        }
 
     @Test
-    fun scheduleRestoreMarksRestoreScheduled() = runTest {
-        val prefs = createPreferencesStore()
-        val fakeServer = FakeBrowserServer()
-        val outputController = createOutputController(
-            prefs = prefs,
-            fakeServer = fakeServer,
-            scope = this,
-        )
+    fun applyModeCancelsPendingRestoreBeforeApplyingNewMode() =
+        runTest {
+            val prefs = createPreferencesStore()
+            val fakeServer = FakeBrowserServer()
+            val outputController =
+                createOutputController(
+                    prefs = prefs,
+                    fakeServer = fakeServer,
+                    scope = this,
+                )
+            prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
 
-        assertFalse(outputController.restoreScheduled)
-        outputController.scheduleRestore()
+            outputController.scheduleRestore()
+            outputController.applyMode(NetworkOutputMode.INSPECTOR)
+            advanceUntilIdle()
 
-        assertTrue(outputController.restoreScheduled)
-    }
+            assertFalse(fakeServer.isRunning)
+            assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
+        }
+
+    @Test
+    fun scheduleRestoreMarksRestoreScheduled() =
+        runTest {
+            val prefs = createPreferencesStore()
+            val fakeServer = FakeBrowserServer()
+            val outputController =
+                createOutputController(
+                    prefs = prefs,
+                    fakeServer = fakeServer,
+                    scope = this,
+                )
+
+            assertFalse(outputController.restoreScheduled)
+            outputController.scheduleRestore()
+
+            assertTrue(outputController.restoreScheduled)
+        }
 
     private fun createOutputController(
         prefs: DebugPreferencesStore,
@@ -121,20 +128,22 @@ internal class NetworkOutputControllerTest {
         scope: CoroutineScope,
     ): NetworkOutputController {
         val callDao = InMemoryNetworkCallDao()
-        val repository = NetworkDebugRepository(
-            dao = callDao,
-            config = ProbeCaptureLimits(),
-            scope = scope,
-            sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), callDao),
-        )
-        val browserController = NetworkBrowserController(
-            repository = repository,
-            config = NetworkBrowserConfig(),
-            addressProvider = FakeAddressProvider(),
-            scope = scope,
-            isEnabled = { true },
-            serverFactory = { fakeServer },
-        )
+        val repository =
+            NetworkDebugRepository(
+                dao = callDao,
+                config = ProbeCaptureLimits(),
+                scope = scope,
+                sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), callDao),
+            )
+        val browserController =
+            NetworkBrowserController(
+                repository = repository,
+                config = NetworkBrowserConfig(),
+                addressProvider = FakeAddressProvider(),
+                scope = scope,
+                isEnabled = { true },
+                serverFactory = { fakeServer },
+            )
         return NetworkOutputController(
             prefs = prefs,
             browserController = browserController,
@@ -146,9 +155,10 @@ internal class NetworkOutputControllerTest {
         val context = ApplicationProvider.getApplicationContext<Application>()
         val file = context.filesDir.resolve("datastore/${UUID.randomUUID()}.preferences_pb")
         file.parentFile?.mkdirs()
-        val dataStore = PreferenceDataStoreFactory.createWithPath(
-            produceFile = { file.absolutePath.toPath() },
-        )
+        val dataStore =
+            PreferenceDataStoreFactory.createWithPath(
+                produceFile = { file.absolutePath.toPath() },
+            )
         return DebugPreferencesStore(dataStore)
     }
 
@@ -197,10 +207,13 @@ internal class NetworkOutputControllerTest {
                 .filterNot { it.id == call.id } + call
         }
 
-        override suspend fun getById(id: String): NetworkCallEntity? =
-            calls.value.firstOrNull { it.id == id }
+        override suspend fun getById(id: String): NetworkCallEntity? = calls.value.firstOrNull { it.id == id }
 
-        override fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>> =
+        override fun observeSearch(
+            sessionId: String,
+            query: String,
+            limit: Int,
+        ): Flow<List<NetworkCallEntity>> =
             calls.map { currentCalls ->
                 currentCalls
                     .filter { it.sessionId == sessionId }
@@ -221,13 +234,17 @@ internal class NetworkOutputControllerTest {
             calls.value = calls.value.filter { it.sessionId in sessionIds }
         }
 
-        override suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int) {
-            val keepIds = calls.value
-                .filter { it.sessionId == sessionId }
-                .sortedByDescending { it.timestampMillis }
-                .take(maxEntries)
-                .map { it.id }
-                .toSet()
+        override suspend fun enforceCountCapForSession(
+            sessionId: String,
+            maxEntries: Int,
+        ) {
+            val keepIds =
+                calls.value
+                    .filter { it.sessionId == sessionId }
+                    .sortedByDescending { it.timestampMillis }
+                    .take(maxEntries)
+                    .map { it.id }
+                    .toSet()
             calls.value = calls.value.filterNot { it.sessionId == sessionId && it.id !in keepIds }
         }
 

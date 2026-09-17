@@ -10,11 +10,13 @@ import kotlin.concurrent.Volatile
 object ProbeHub {
     interface Hook {
         fun isEnabled(): Boolean
+
         fun openHub(context: ProbePlatformContext)
     }
 
     private object NoOpHook : Hook {
         override fun isEnabled() = false
+
         override fun openHub(context: ProbePlatformContext) = Unit
     }
 

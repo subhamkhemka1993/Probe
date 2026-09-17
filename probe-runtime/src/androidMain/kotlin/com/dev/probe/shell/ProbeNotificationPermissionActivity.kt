@@ -19,7 +19,6 @@ import com.dev.probe.api.ProbeNotificationPoster
  * `.shell.ProbeNotificationPermissionActivity`, matching [ProbeActivity].
  */
 class ProbeNotificationPermissionActivity : ComponentActivity() {
-
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) postPendingNotification()
@@ -36,8 +35,7 @@ class ProbeNotificationPermissionActivity : ComponentActivity() {
         requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
-    private fun hasPermission(): Boolean =
-        checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+    private fun hasPermission(): Boolean = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     private fun postPendingNotification() {
         val state = PendingProbeNotifierState.consume() ?: return

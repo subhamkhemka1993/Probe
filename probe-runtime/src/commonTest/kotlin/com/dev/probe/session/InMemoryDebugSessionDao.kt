@@ -21,23 +21,28 @@ internal class InMemoryDebugSessionDao : DebugSessionDao {
         sessions.value = sessions.value.filterNot { it.id == session.id } + session
     }
 
-    override suspend fun getByRole(role: String): DebugSessionEntity? =
-        sessions.value.firstOrNull { it.role == role }
+    override suspend fun getByRole(role: String): DebugSessionEntity? = sessions.value.firstOrNull { it.role == role }
 
     override suspend fun getAll(): List<DebugSessionEntity> = sessions.value
 
     override fun observeAll(): Flow<List<DebugSessionEntity>> = sessions
 
-    override suspend fun updateRole(id: String, role: String, endedAtMillis: Long?) {
-        sessions.value = sessions.value.map {
-            if (it.id == id) it.copy(role = role, endedAtMillis = endedAtMillis) else it
-        }
+    override suspend fun updateRole(
+        id: String,
+        role: String,
+        endedAtMillis: Long?,
+    ) {
+        sessions.value =
+            sessions.value.map {
+                if (it.id == id) it.copy(role = role, endedAtMillis = endedAtMillis) else it
+            }
     }
 
     override suspend fun deleteOrphans() {
-        sessions.value = sessions.value.filter {
-            it.role == SESSION_ROLE_CURRENT || it.role == SESSION_ROLE_PREVIOUS
-        }
+        sessions.value =
+            sessions.value.filter {
+                it.role == SESSION_ROLE_CURRENT || it.role == SESSION_ROLE_PREVIOUS
+            }
     }
 
     override suspend fun deleteSessionsNotIn(sessionIds: List<String>) {

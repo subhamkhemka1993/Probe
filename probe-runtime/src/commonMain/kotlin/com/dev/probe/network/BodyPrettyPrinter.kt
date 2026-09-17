@@ -6,12 +6,16 @@ import kotlinx.serialization.json.JsonElement
 internal object BodyPrettyPrinter {
     private const val MAX_PRETTY_CHARS = 32_000
 
-    private val jsonFormatter = Json {
-        prettyPrint = true
-        prettyPrintIndent = "  "
-    }
+    private val jsonFormatter =
+        Json {
+            prettyPrint = true
+            prettyPrintIndent = "  "
+        }
 
-    fun format(body: String, contentType: String? = null): String {
+    fun format(
+        body: String,
+        contentType: String? = null,
+    ): String {
         if (body.isBlank()) return "(empty)"
         val trimmed = body.trim()
         if (trimmed.length > MAX_PRETTY_CHARS) return trimmed
@@ -22,11 +26,18 @@ internal object BodyPrettyPrinter {
         }
     }
 
-    private fun isJson(contentType: String?, body: String): Boolean =
+    private fun isJson(
+        contentType: String?,
+        body: String,
+    ): Boolean =
         contentType?.contains("json", ignoreCase = true) == true ||
-            body.startsWith("{") || body.startsWith("[")
+            body.startsWith("{") ||
+            body.startsWith("[")
 
-    private fun isXml(contentType: String?, body: String): Boolean =
+    private fun isXml(
+        contentType: String?,
+        body: String,
+    ): Boolean =
         contentType?.contains("xml", ignoreCase = true) == true ||
             body.startsWith("<")
 
@@ -40,12 +51,14 @@ internal object BodyPrettyPrinter {
 
     private fun prettyXml(raw: String): String =
         try {
-            val lines = raw.trim()
-                .replace(">\\s+<".toRegex(), "><")
-                .replace("><", ">\n<")
-                .lines()
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
+            val lines =
+                raw
+                    .trim()
+                    .replace(">\\s+<".toRegex(), "><")
+                    .replace("><", ">\n<")
+                    .lines()
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
             if (lines.isEmpty()) return raw
 
             val sb = StringBuilder()

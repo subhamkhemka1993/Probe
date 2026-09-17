@@ -22,19 +22,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.dev.probe.plugin.ProbePlugin
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbePreviewData
 import com.dev.probe.preview.ProbeSheetPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.ui.primitives.ProbeBottomSheet
 import com.dev.probe.ui.primitives.ProbeDivider
 import com.dev.probe.ui.primitives.ProbeListRow
 
-private fun hubPluginIcon(pluginId: String): ImageVector = when (pluginId) {
-    "network" -> Icons.Filled.SwapHoriz
-    else -> Icons.Filled.Info
-}
+private fun hubPluginIcon(pluginId: String): ImageVector =
+    when (pluginId) {
+        "network" -> Icons.Filled.SwapHoriz
+        else -> Icons.Filled.Info
+    }
 
 @Composable
 private fun HubSectionHeader(title: String) {

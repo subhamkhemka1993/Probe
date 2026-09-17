@@ -34,8 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeSheetPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.semiBold
@@ -58,12 +58,13 @@ internal fun ProbeBottomSheet(
 
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { sheetValue ->
-            if (!allowDismiss) sheetValue != SheetValue.Hidden else true
-        },
-    )
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { sheetValue ->
+                if (!allowDismiss) sheetValue != SheetValue.Hidden else true
+            },
+        )
 
     ModalBottomSheet(
         onDismissRequest = {
@@ -76,14 +77,16 @@ internal fun ProbeBottomSheet(
         dragHandle = null,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding(),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -100,11 +103,12 @@ internal fun ProbeBottomSheet(
                         imageVector = headerIcon,
                         contentDescription = null,
                         tint = colors.primary,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(colors.surface)
-                            .padding(8.dp),
+                        modifier =
+                            Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(colors.surface)
+                                .padding(8.dp),
                     )
                 }
                 Text(
@@ -118,20 +122,22 @@ internal fun ProbeBottomSheet(
             ProbeDivider()
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = false)
-                    .verticalScroll(rememberScrollState())
-                    .padding(contentPadding),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
+                        .padding(contentPadding),
                 content = content,
             )
 
             if (footer != null) {
                 ProbeDivider()
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     content = footer,
                 )

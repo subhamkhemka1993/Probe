@@ -5,7 +5,6 @@ import com.dev.probe.session.DebugSessionManager
 import kotlinx.coroutines.CoroutineScope
 
 internal class NetworkDebugRepositoryTest : NetworkDebugRepositoryTestBase() {
-
     override fun createRepository(
         config: ProbeCaptureLimits,
         scope: CoroutineScope,

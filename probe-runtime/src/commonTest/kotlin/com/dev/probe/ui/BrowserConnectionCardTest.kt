@@ -7,23 +7,24 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class BrowserConnectionCardTest {
-
     @Test
     fun copyLinkUrl_returnsWifiUrl_onEmulatorFixture() {
-        val connectionInfo = runningFixture(
-            wifiUrl = "http://10.0.2.16:8765/?token=sample-token",
-            emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
-        )
+        val connectionInfo =
+            runningFixture(
+                wifiUrl = "http://10.0.2.16:8765/?token=sample-token",
+                emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
+            )
 
         assertEquals(connectionInfo.wifiUrl, connectionInfo.copyLinkUrl())
     }
 
     @Test
     fun copyLinkUrl_returnsWifiUrl_onPhysicalDeviceFixture() {
-        val connectionInfo = runningFixture(
-            wifiUrl = "http://192.168.1.12:8765/?token=sample-token",
-            emulatorUrl = null,
-        )
+        val connectionInfo =
+            runningFixture(
+                wifiUrl = "http://192.168.1.12:8765/?token=sample-token",
+                emulatorUrl = null,
+            )
 
         assertEquals(connectionInfo.wifiUrl, connectionInfo.copyLinkUrl())
     }
@@ -53,30 +54,33 @@ class BrowserConnectionCardTest {
 
     @Test
     fun showsSimulatorRow_isTrue_whenOnlySimulatorUrlIsPresent() {
-        val connectionInfo = runningFixture(
-            emulatorUrl = null,
-            simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
-        )
+        val connectionInfo =
+            runningFixture(
+                emulatorUrl = null,
+                simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
+            )
 
         assertTrue(connectionInfo.showsSimulatorRow())
     }
 
     @Test
     fun showsSimulatorRow_isFalse_whenOnlyEmulatorUrlIsPresent() {
-        val connectionInfo = runningFixture(
-            emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
-            simulatorUrl = null,
-        )
+        val connectionInfo =
+            runningFixture(
+                emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
+                simulatorUrl = null,
+            )
 
         assertFalse(connectionInfo.showsSimulatorRow())
     }
 
     @Test
     fun showsSimulatorRow_isFalse_whenBothEmulatorAndSimulatorUrlsArePresent() {
-        val connectionInfo = runningFixture(
-            emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
-            simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
-        )
+        val connectionInfo =
+            runningFixture(
+                emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
+                simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
+            )
 
         assertFalse(connectionInfo.showsSimulatorRow())
     }

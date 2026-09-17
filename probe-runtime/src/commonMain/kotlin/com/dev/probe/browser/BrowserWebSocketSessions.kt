@@ -16,10 +16,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 internal class BrowserWebSocketSessions(
-    private val json: Json = Json {
-        // app.js matches on type === "call_updated"; defaults are omitted otherwise.
-        encodeDefaults = true
-    },
+    private val json: Json =
+        Json {
+            // app.js matches on type === "call_updated"; defaults are omitted otherwise.
+            encodeDefaults = true
+        },
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mutex = Mutex()
@@ -70,8 +71,7 @@ internal class BrowserWebSocketSessions(
             }
         }
 
-    private suspend fun snapshot(): List<DefaultWebSocketServerSession> =
-        mutex.withLock { sessions.toList() }
+    private suspend fun snapshot(): List<DefaultWebSocketServerSession> = mutex.withLock { sessions.toList() }
 
     private companion object {
         const val CLOSE_TIMEOUT_MILLIS = 500L

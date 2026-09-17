@@ -16,13 +16,14 @@ internal fun getDatabaseBuilder(): RoomDatabase.Builder<ProbeDatabase> {
 
 @OptIn(ExperimentalForeignApi::class)
 private fun applicationSupportDirectory(): String {
-    val appSupportDirectory = NSFileManager.defaultManager.URLForDirectory(
-        directory = NSApplicationSupportDirectory,
-        inDomain = NSUserDomainMask,
-        appropriateForURL = null,
-        create = true,
-        error = null,
-    )
+    val appSupportDirectory =
+        NSFileManager.defaultManager.URLForDirectory(
+            directory = NSApplicationSupportDirectory,
+            inDomain = NSUserDomainMask,
+            appropriateForURL = null,
+            create = true,
+            error = null,
+        )
 
     return requireNotNull(appSupportDirectory?.path)
 }

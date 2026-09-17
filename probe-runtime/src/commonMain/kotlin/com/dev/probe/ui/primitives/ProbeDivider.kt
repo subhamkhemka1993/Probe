@@ -7,8 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 

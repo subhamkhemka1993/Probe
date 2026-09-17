@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class BodyTruncatorTest {
-
     @Test
     fun truncatesBodyOverMaxBytes() {
         val body = "a".repeat(300_000)

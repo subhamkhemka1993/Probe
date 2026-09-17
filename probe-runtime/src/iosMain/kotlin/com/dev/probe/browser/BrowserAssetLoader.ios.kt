@@ -6,6 +6,5 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
 internal actual object BrowserAssetLoader {
-    actual fun readText(relativePath: String): String =
-        runBlocking { Res.readBytes(relativePath).decodeToString() }
+    actual fun readText(relativePath: String): String = runBlocking { Res.readBytes(relativePath).decodeToString() }
 }

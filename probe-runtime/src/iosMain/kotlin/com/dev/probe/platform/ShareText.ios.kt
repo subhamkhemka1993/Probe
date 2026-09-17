@@ -12,10 +12,11 @@ import platform.UIKit.popoverPresentationController
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun shareText(text: String) {
     val presenter = findTopViewController() ?: return
-    val shareController = UIActivityViewController(
-        activityItems = listOf(text),
-        applicationActivities = null,
-    )
+    val shareController =
+        UIActivityViewController(
+            activityItems = listOf(text),
+            applicationActivities = null,
+        )
     shareController.popoverPresentationController?.let { popover ->
         popover.sourceView = presenter.view
         popover.sourceRect = presenter.view.bounds

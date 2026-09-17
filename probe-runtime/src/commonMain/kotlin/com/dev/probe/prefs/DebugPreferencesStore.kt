@@ -15,14 +15,15 @@ private val NetworkOutputModeKey = stringPreferencesKey("network_output_mode")
 internal class DebugPreferencesStore(
     private val dataStore: DataStore<Preferences>,
 ) {
-
-    val preferences: Flow<DebugPreferences> = dataStore.data.map { prefs ->
-        DebugPreferences(
-            networkOutputMode = prefs[NetworkOutputModeKey]
-                ?.let(::parseNetworkOutputMode)
-                ?: NetworkOutputMode.INSPECTOR,
-        )
-    }
+    val preferences: Flow<DebugPreferences> =
+        dataStore.data.map { prefs ->
+            DebugPreferences(
+                networkOutputMode =
+                    prefs[NetworkOutputModeKey]
+                        ?.let(::parseNetworkOutputMode)
+                        ?: NetworkOutputMode.INSPECTOR,
+            )
+        }
 
     suspend fun setNetworkOutputMode(mode: NetworkOutputMode) {
         dataStore.edit { prefs ->

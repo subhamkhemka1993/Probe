@@ -6,8 +6,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal actual suspend fun clearAppData(ctx: ProbePlatformContext): ClearDataResult {
-    val activityManager = ctx.context.getSystemService(ActivityManager::class.java)
-        ?: return ClearDataResult.Failed("ActivityManager unavailable")
+    val activityManager =
+        ctx.context.getSystemService(ActivityManager::class.java)
+            ?: return ClearDataResult.Failed("ActivityManager unavailable")
 
     return withContext(Dispatchers.IO) {
         if (activityManager.clearApplicationUserData()) {

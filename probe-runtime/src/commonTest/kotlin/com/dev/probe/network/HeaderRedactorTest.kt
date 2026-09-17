@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class HeaderRedactorTest {
-
     @Test
     fun redactsAuthorizationCaseInsensitive() {
         val input = mapOf("Authorization" to "Bearer secret", "Content-Type" to "application/json")

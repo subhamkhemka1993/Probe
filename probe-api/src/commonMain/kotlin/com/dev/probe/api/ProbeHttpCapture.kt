@@ -8,7 +8,6 @@ import kotlin.concurrent.Volatile
  * Call [installCapture] from your client builder; [ProbeRuntime.initialize] registers the active hook at startup.
  */
 object ProbeHttpCapture {
-
     @Volatile
     private var hook: HttpClientDebugHook = NoOpHttpClientDebugHook
 

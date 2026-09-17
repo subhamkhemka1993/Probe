@@ -38,8 +38,7 @@ internal class CaptureNotifierBridge(
                     outputMode = prefs.networkOutputMode,
                     browserUrl = (conn as? BrowserConnectionInfo.Running)?.wifiUrl,
                 )
-            }
-                .sample(NOTIFICATION_DEBOUNCE_MS)
+            }.sample(NOTIFICATION_DEBOUNCE_MS)
                 .collect { notifier.show(it) }
         }
     }

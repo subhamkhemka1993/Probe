@@ -32,9 +32,9 @@ import com.dev.probe.DebugToolbarIconSize
 import com.dev.probe.network.buildCurl
 import com.dev.probe.network.model.NetworkCall
 import com.dev.probe.platform.shareText
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeFullScreenPreview
 import com.dev.probe.preview.ProbePreviewData
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.semiBold
@@ -70,15 +70,17 @@ internal fun NetworkDetailContent(
     val curlCommand = remember(call.id) { buildCurl(call) }
     val status = call.statusPresentation()
     val detailTabState = rememberProbeTabState(initialSelectedIndex = 0, style = ProbeTabBarStyle.Tertiary)
-    val selectedDetailTab = DetailTab.entries.getOrElse(detailTabState.selectedIndex.intValue) {
-        DetailTab.Overview
-    }
+    val selectedDetailTab =
+        DetailTab.entries.getOrElse(detailTabState.selectedIndex.intValue) {
+            DetailTab.Overview
+        }
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(all = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -115,49 +117,54 @@ internal fun NetworkDetailContent(
         )
 
         when (selectedDetailTab) {
-            DetailTab.Overview -> OverviewTab(
-                modifier = Modifier.weight(1f),
-                call = call,
-                status = status,
-                onCopyCurl = { clipboard.setText(AnnotatedString(curlCommand)) },
-                onShareCurl = { shareText(curlCommand) },
-            )
+            DetailTab.Overview ->
+                OverviewTab(
+                    modifier = Modifier.weight(1f),
+                    call = call,
+                    status = status,
+                    onCopyCurl = { clipboard.setText(AnnotatedString(curlCommand)) },
+                    onShareCurl = { shareText(curlCommand) },
+                )
 
-            DetailTab.Request -> PayloadTabContent(
-                modifier = Modifier.weight(1f),
-                headers = call.requestHeaders,
-                body = call.requestBody,
-                contentType = call.requestHeaders.contentType(),
-                onCopyBody = { fullText ->
-                    scope.launch {
-                        val formatted = withContext(Dispatchers.Default) {
-                            NetworkBodyFormatter.formatForCopy(
-                                fullText,
-                                call.requestHeaders.contentType(),
-                            )
+            DetailTab.Request ->
+                PayloadTabContent(
+                    modifier = Modifier.weight(1f),
+                    headers = call.requestHeaders,
+                    body = call.requestBody,
+                    contentType = call.requestHeaders.contentType(),
+                    onCopyBody = { fullText ->
+                        scope.launch {
+                            val formatted =
+                                withContext(Dispatchers.Default) {
+                                    NetworkBodyFormatter.formatForCopy(
+                                        fullText,
+                                        call.requestHeaders.contentType(),
+                                    )
+                                }
+                            clipboard.setText(AnnotatedString(formatted))
                         }
-                        clipboard.setText(AnnotatedString(formatted))
-                    }
-                },
-            )
+                    },
+                )
 
-            DetailTab.Response -> PayloadTabContent(
-                modifier = Modifier.weight(1f),
-                headers = call.responseHeaders.orEmpty(),
-                body = call.responseBody ?: call.error,
-                contentType = call.responseHeaders?.contentType(),
-                onCopyBody = { fullText ->
-                    scope.launch {
-                        val formatted = withContext(Dispatchers.Default) {
-                            NetworkBodyFormatter.formatForCopy(
-                                fullText,
-                                call.responseHeaders?.contentType(),
-                            )
+            DetailTab.Response ->
+                PayloadTabContent(
+                    modifier = Modifier.weight(1f),
+                    headers = call.responseHeaders.orEmpty(),
+                    body = call.responseBody ?: call.error,
+                    contentType = call.responseHeaders?.contentType(),
+                    onCopyBody = { fullText ->
+                        scope.launch {
+                            val formatted =
+                                withContext(Dispatchers.Default) {
+                                    NetworkBodyFormatter.formatForCopy(
+                                        fullText,
+                                        call.responseHeaders?.contentType(),
+                                    )
+                                }
+                            clipboard.setText(AnnotatedString(formatted))
                         }
-                        clipboard.setText(AnnotatedString(formatted))
-                    }
-                },
-            )
+                    },
+                )
         }
     }
 }
@@ -201,18 +208,20 @@ private fun OverviewTab(
 ) {
     val colors = LocalProbeColors.current
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 16.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(CardShape)
-                .background(colors.surface)
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(CardShape)
+                    .background(colors.surface)
+                    .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
@@ -244,8 +253,7 @@ private fun OverviewTab(
     }
 }
 
-private fun Map<String, String>.contentType(): String? =
-    entries.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }?.value
+private fun Map<String, String>.contentType(): String? = entries.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }?.value
 
 @Composable
 private fun PayloadTabContent(
@@ -257,9 +265,10 @@ private fun PayloadTabContent(
 ) {
     val colors = LocalProbeColors.current
     val subTabState = rememberProbeTabState(initialSelectedIndex = 0, style = ProbeTabBarStyle.Secondary)
-    val selectedPayloadTab = PayloadTab.entries.getOrElse(subTabState.selectedIndex.intValue) {
-        PayloadTab.Headers
-    }
+    val selectedPayloadTab =
+        PayloadTab.entries.getOrElse(subTabState.selectedIndex.intValue) {
+            PayloadTab.Headers
+        }
     var bodyTabOpened by remember { mutableStateOf(false) }
     if (selectedPayloadTab == PayloadTab.Body) {
         bodyTabOpened = true
@@ -269,23 +278,26 @@ private fun PayloadTabContent(
         ProbeTabBar(
             tabItems = PayloadTab.entries.map { it.name },
             tabState = subTabState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
             onTabSelected = { subTabState.select(it) },
         )
 
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             if (bodyTabOpened) {
                 NetworkBodyBlock(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(0f),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .zIndex(0f),
                     body = body,
                     contentType = contentType,
                     onCopy = { onCopyBody(body.orEmpty().trim()) },
@@ -294,11 +306,12 @@ private fun PayloadTabContent(
 
             if (selectedPayloadTab == PayloadTab.Headers) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(1f)
-                        .verticalScroll(rememberScrollState())
-                        .background(colors.background),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .zIndex(1f)
+                            .verticalScroll(rememberScrollState())
+                            .background(colors.background),
                 ) {
                     NetworkHeadersTable(headers = headers)
                 }

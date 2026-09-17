@@ -27,8 +27,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dev.probe.browser.BrowserConnectionInfo
 import com.dev.probe.network.ui.NetworkStatusTone
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.medium
@@ -56,31 +56,35 @@ internal fun BrowserConnectionCard(
     val colors = LocalProbeColors.current
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(CardShape)
-            .background(colors.surface)
-            .padding(12.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(CardShape)
+                .background(colors.surface)
+                .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         when (connectionInfo) {
-            BrowserConnectionInfo.Stopped -> BrowserConnectionMessage(
-                title = "Starting server",
-                subtitle = "The LAN inspector will appear here once the server is ready.",
-                tone = NetworkStatusTone.Neutral,
-            )
+            BrowserConnectionInfo.Stopped ->
+                BrowserConnectionMessage(
+                    title = "Starting server",
+                    subtitle = "The LAN inspector will appear here once the server is ready.",
+                    tone = NetworkStatusTone.Neutral,
+                )
 
-            is BrowserConnectionInfo.Error -> BrowserConnectionMessage(
-                title = "Server error",
-                subtitle = connectionInfo.message,
-                tone = NetworkStatusTone.Error,
-            )
+            is BrowserConnectionInfo.Error ->
+                BrowserConnectionMessage(
+                    title = "Server error",
+                    subtitle = connectionInfo.message,
+                    tone = NetworkStatusTone.Error,
+                )
 
-            is BrowserConnectionInfo.Running -> BrowserConnectionRunning(
-                connectionInfo = connectionInfo,
-                onCopyLink = onCopyLink,
-                onCopyToken = onCopyToken,
-            )
+            is BrowserConnectionInfo.Running ->
+                BrowserConnectionRunning(
+                    connectionInfo = connectionInfo,
+                    onCopyLink = onCopyLink,
+                    onCopyToken = onCopyToken,
+                )
         }
     }
 }
@@ -165,8 +169,10 @@ internal fun BrowserConnectionInfo.Running.copyLinkUrl(): String = wifiUrl
  * Simulator, whereas this URL must stay available whenever [BrowserConnectionInfo.Running.emulatorUrl]
  * is non-null (i.e. on an Android emulator, where `isSimulator()` is always `false`).
  */
-internal fun emulatorDesktopUrl(port: Int, token: String): String =
-    "http://$EMULATOR_DESKTOP_LOOPBACK_HOST:$port/?token=$token"
+internal fun emulatorDesktopUrl(
+    port: Int,
+    token: String,
+): String = "http://$EMULATOR_DESKTOP_LOOPBACK_HOST:$port/?token=$token"
 
 /**
  * The "Simulator" URL row is only relevant when there's no emulator accordion already covering
@@ -176,8 +182,7 @@ internal fun emulatorDesktopUrl(port: Int, token: String): String =
  * [BrowserConnectionInfo.Running.simulatorUrl] happen to never both be non-null today, since
  * `isEmulator()`/`isSimulator()` are hardcoded `false` on the platform where the other applies).
  */
-internal fun BrowserConnectionInfo.Running.showsSimulatorRow(): Boolean =
-    emulatorUrl == null && simulatorUrl != null
+internal fun BrowserConnectionInfo.Running.showsSimulatorRow(): Boolean = emulatorUrl == null && simulatorUrl != null
 
 @Composable
 private fun EmulatorHelpAccordion(
@@ -190,9 +195,10 @@ private fun EmulatorHelpAccordion(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -211,9 +217,10 @@ private fun EmulatorHelpAccordion(
 
         if (expanded) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, top = 8.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
@@ -276,13 +283,14 @@ private fun BrowserConnectionCardStoppedPreview() {
 private fun BrowserConnectionCardDevicePreview() {
     ProbeBackgroundPreviewContainer {
         BrowserConnectionCard(
-            connectionInfo = BrowserConnectionInfo.Running(
-                port = 8765,
-                token = "sample-token",
-                wifiUrl = "http://192.168.1.12:8765/?token=sample-token",
-                emulatorUrl = null,
-                simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
-            ),
+            connectionInfo =
+                BrowserConnectionInfo.Running(
+                    port = 8765,
+                    token = "sample-token",
+                    wifiUrl = "http://192.168.1.12:8765/?token=sample-token",
+                    emulatorUrl = null,
+                    simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
+                ),
             onCopyLink = {},
             onCopyToken = {},
         )
@@ -294,13 +302,14 @@ private fun BrowserConnectionCardDevicePreview() {
 private fun BrowserConnectionCardEmulatorPreview() {
     ProbeBackgroundPreviewContainer {
         BrowserConnectionCard(
-            connectionInfo = BrowserConnectionInfo.Running(
-                port = 8765,
-                token = "sample-token",
-                wifiUrl = "http://10.0.2.16:8765/?token=sample-token",
-                emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
-                simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
-            ),
+            connectionInfo =
+                BrowserConnectionInfo.Running(
+                    port = 8765,
+                    token = "sample-token",
+                    wifiUrl = "http://10.0.2.16:8765/?token=sample-token",
+                    emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
+                    simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
+                ),
             onCopyLink = {},
             onCopyToken = {},
         )

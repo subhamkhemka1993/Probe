@@ -8,11 +8,15 @@ actual object ProbeLauncher {
 
     actual fun openInspector(ctx: ProbePlatformContext) = launch(ctx, ProbeStartScreen.Inspector)
 
-    private fun launch(ctx: ProbePlatformContext, screen: ProbeStartScreen) {
-        val intent = Intent(ctx.context, ProbeActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra(PROBE_START_SCREEN, screen.name)
-        }
+    private fun launch(
+        ctx: ProbePlatformContext,
+        screen: ProbeStartScreen,
+    ) {
+        val intent =
+            Intent(ctx.context, ProbeActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra(PROBE_START_SCREEN, screen.name)
+            }
         ctx.context.startActivity(intent)
     }
 }

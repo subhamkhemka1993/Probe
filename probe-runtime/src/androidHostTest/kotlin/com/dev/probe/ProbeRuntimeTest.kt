@@ -2,10 +2,10 @@ package com.dev.probe
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbeHub
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
-import com.dev.probe.api.ProbeConfig
 import com.dev.probe.browser.BrowserConnectionInfo
 import com.dev.probe.internal.ProbePlatformHolder
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +24,6 @@ import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeRuntimeTest {
-
     private val scope = CoroutineScope(SupervisorJob())
     private val platform by lazy {
         ProbePlatformContext(ApplicationProvider.getApplicationContext<Application>())
@@ -80,7 +79,9 @@ class ProbeRuntimeTest {
 
         assertEquals(
             BrowserConnectionInfo.Stopped,
-            ProbeRuntime.services().browserController.connectionInfo.value,
+            ProbeRuntime
+                .services()
+                .browserController.connectionInfo.value,
         )
     }
 
@@ -97,7 +98,9 @@ class ProbeRuntimeTest {
 
         assertEquals(
             BrowserConnectionInfo.Stopped,
-            ProbeRuntime.services().browserController.connectionInfo.value,
+            ProbeRuntime
+                .services()
+                .browserController.connectionInfo.value,
         )
     }
 

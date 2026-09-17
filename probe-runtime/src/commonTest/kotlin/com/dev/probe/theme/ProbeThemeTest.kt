@@ -1,14 +1,13 @@
 package com.dev.probe.theme
 
 import androidx.compose.material3.lightColorScheme
-import com.dev.probe.api.ProbeThemeOverride
 import androidx.compose.ui.graphics.Color
+import com.dev.probe.api.ProbeThemeOverride
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ProbeThemeTest {
-
     @Test
     fun default_uses_material_light_background() {
         val expected = lightColorScheme().background

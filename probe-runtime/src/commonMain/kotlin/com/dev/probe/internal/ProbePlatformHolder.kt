@@ -9,8 +9,7 @@ internal object ProbePlatformHolder {
         this.platform = platform
     }
 
-    fun requirePlatform(): ProbePlatformContext =
-        checkNotNull(platform) { "ProbeRuntime.initialize() must be called first" }
+    fun requirePlatform(): ProbePlatformContext = checkNotNull(platform) { "ProbeRuntime.initialize() must be called first" }
 
     fun clear() {
         platform = null

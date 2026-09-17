@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 
@@ -21,21 +21,23 @@ internal fun ProbePrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    minHeight: Dp = 48.dp
+    minHeight: Dp = 48.dp,
 ) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier
-            .heightIn(min = minHeight),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = colors.primary,
-            contentColor = colors.onPrimary,
-            disabledContainerColor = colors.primary.copy(alpha = 0.4f),
-            disabledContentColor = colors.onPrimary.copy(alpha = 0.6f),
-        ),
+        modifier =
+            modifier
+                .heightIn(min = minHeight),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = colors.primary,
+                contentColor = colors.onPrimary,
+                disabledContainerColor = colors.primary.copy(alpha = 0.4f),
+                disabledContentColor = colors.onPrimary.copy(alpha = 0.6f),
+            ),
     ) {
         Text(
             text = title,

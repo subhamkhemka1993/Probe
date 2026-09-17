@@ -8,9 +8,9 @@ import org.robolectric.RuntimeEnvironment
 
 internal actual fun createTestProbeDatabase(): ProbeDatabase {
     val context = RuntimeEnvironment.getApplication()
-    return Room.inMemoryDatabaseBuilder<ProbeDatabase>(
-        context = context,
-    )
-        .setQueryCoroutineContext(Dispatchers.IO)
+    return Room
+        .inMemoryDatabaseBuilder<ProbeDatabase>(
+            context = context,
+        ).setQueryCoroutineContext(Dispatchers.IO)
         .build()
 }

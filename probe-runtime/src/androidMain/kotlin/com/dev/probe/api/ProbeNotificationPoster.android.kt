@@ -30,18 +30,23 @@ internal object ProbeNotificationPoster {
         )
     }
 
-    fun post(context: Context, state: ProbeNotifierState) {
+    fun post(
+        context: Context,
+        state: ProbeNotifierState,
+    ) {
         ensureChannel(context)
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.stat_sys_download_done)
-            .setContentTitle(contentTitle(state))
-            .setContentText(contentText(state))
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setContentIntent(tapPendingIntent(context, ProbeStartScreen.Inspector))
-            .addAction(0, "Hub", tapPendingIntent(context, ProbeStartScreen.Hub))
-            .build()
+        val notification =
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle(contentTitle(state))
+                .setContentText(contentText(state))
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setContentIntent(tapPendingIntent(context, ProbeStartScreen.Inspector))
+                .addAction(0, "Hub", tapPendingIntent(context, ProbeStartScreen.Hub))
+                .build()
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
     }
 
@@ -49,11 +54,15 @@ internal object ProbeNotificationPoster {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
     }
 
-    private fun tapPendingIntent(context: Context, screen: ProbeStartScreen): PendingIntent {
-        val intent = Intent(context, ProbeActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra(PROBE_START_SCREEN, screen.name)
-        }
+    private fun tapPendingIntent(
+        context: Context,
+        screen: ProbeStartScreen,
+    ): PendingIntent {
+        val intent =
+            Intent(context, ProbeActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                putExtra(PROBE_START_SCREEN, screen.name)
+            }
         return PendingIntent.getActivity(
             context,
             screen.ordinal,

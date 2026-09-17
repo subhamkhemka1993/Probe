@@ -15,8 +15,11 @@ internal data class ProbeNotifierState(
  * platform shell while capture is active. Declared `open` so tests can substitute a recording
  * subclass without touching real notification APIs.
  */
-internal expect open class ProbeNotifier(platformContext: ProbePlatformContext) {
+internal expect open class ProbeNotifier(
+    platformContext: ProbePlatformContext,
+) {
     open fun show(state: ProbeNotifierState)
+
     open fun hide()
 }
 

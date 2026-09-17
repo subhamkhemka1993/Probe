@@ -22,8 +22,8 @@ import com.dev.probe.browser.NetworkBrowserController
 import com.dev.probe.policy.NetworkOutputController
 import com.dev.probe.prefs.DebugPreferences
 import com.dev.probe.prefs.DebugPreferencesStore
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.ui.primitives.ProbeBottomSheet
 import com.dev.probe.ui.primitives.ProbeDivider
 import com.dev.probe.ui.primitives.ProbePrimaryButton
@@ -36,18 +36,19 @@ private data class NetworkModeOption(
     val subtitle: String,
 )
 
-private val networkModeOptions = listOf(
-    NetworkModeOption(
-        mode = NetworkOutputMode.INSPECTOR,
-        label = "In-app inspector",
-        subtitle = "Capture traffic with list and detail views",
-    ),
-    NetworkModeOption(
-        mode = NetworkOutputMode.BROWSER,
-        label = "Browser inspector",
-        subtitle = "Inspect traffic in a desktop browser",
-    ),
-)
+private val networkModeOptions =
+    listOf(
+        NetworkModeOption(
+            mode = NetworkOutputMode.INSPECTOR,
+            label = "In-app inspector",
+            subtitle = "Capture traffic with list and detail views",
+        ),
+        NetworkModeOption(
+            mode = NetworkOutputMode.BROWSER,
+            label = "Browser inspector",
+            subtitle = "Inspect traffic in a desktop browser",
+        ),
+    )
 
 @Composable
 internal fun NetworkOutputModeSheet(

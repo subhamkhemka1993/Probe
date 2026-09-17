@@ -80,102 +80,106 @@ internal class NetworkBrowserServer(
         var startedEngine: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
 
         try {
-            startedEngine = embeddedServer(
-                factory = CIO,
-                host = config.bindPolicy.host,
-                port = config.port,
-            ) {
-                install(ContentNegotiation) {
-                    json()
-                }
-                install(CORS) {
-                    anyHost()
-                }
-                install(WebSockets)
-
-                routing {
-                    get("/") {
-                        call.respondText(staticAssets.indexHtml(), ContentType.Text.Html)
+            startedEngine =
+                embeddedServer(
+                    factory = CIO,
+                    host = config.bindPolicy.host,
+                    port = config.port,
+                ) {
+                    install(ContentNegotiation) {
+                        json()
                     }
-                    get("/assets/{path...}") {
-                        when (call.parameters.getAll("path")?.joinToString("/")) {
-                            "styles.css" -> call.respondText(
-                                staticAssets.stylesCss(),
-                                ContentType.Text.CSS,
-                            )
-                            "app.js" -> call.respondText(
-                                staticAssets.appJs(),
-                                ContentType.Text.JavaScript,
-                            )
-                            else -> call.respond(HttpStatusCode.NotFound)
-                        }
+                    install(CORS) {
+                        anyHost()
                     }
+                    install(WebSockets)
 
-                    route("/api/v1") {
-                        install(apiAuthPlugin())
-
-                        get("/health") {
-                            call.respond(HealthResponse("ok", deviceName()))
+                    routing {
+                        get("/") {
+                            call.respondText(staticAssets.indexHtml(), ContentType.Text.Html)
                         }
-                        get("/calls") {
-                            val search = call.request.queryParameters["search"].orEmpty()
-                            val limit = call.request.queryParameters["limit"]
-                                ?.toIntOrNull()
-                                ?: DEFAULT_LIST_LIMIT
-                            val session = call.request.queryParameters["session"]
-                            call.respond(handlers.listCalls(search, limit, session))
-                        }
-                        get("/calls/{id}") {
-                            val id = call.parameters["id"]
-                            val dto = id?.let { handlers.getCall(it) }
-                            if (dto == null) {
-                                call.respond(HttpStatusCode.NotFound)
-                            } else {
-                                call.respond(dto)
+                        get("/assets/{path...}") {
+                            when (call.parameters.getAll("path")?.joinToString("/")) {
+                                "styles.css" ->
+                                    call.respondText(
+                                        staticAssets.stylesCss(),
+                                        ContentType.Text.CSS,
+                                    )
+                                "app.js" ->
+                                    call.respondText(
+                                        staticAssets.appJs(),
+                                        ContentType.Text.JavaScript,
+                                    )
+                                else -> call.respond(HttpStatusCode.NotFound)
                             }
                         }
-                        delete("/calls") {
-                            val session = call.request.queryParameters["session"]
-                            call.respond(handlers.clearCalls(session))
-                        }
-                        get("/calls/{id}/curl") {
-                            val id = call.parameters["id"]
-                            val response = id?.let { handlers.buildCurl(it) }
-                            if (response == null) {
-                                call.respond(HttpStatusCode.NotFound)
-                            } else {
-                                call.respond(response)
+
+                        route("/api/v1") {
+                            install(apiAuthPlugin())
+
+                            get("/health") {
+                                call.respond(HealthResponse("ok", deviceName()))
+                            }
+                            get("/calls") {
+                                val search = call.request.queryParameters["search"].orEmpty()
+                                val limit =
+                                    call.request.queryParameters["limit"]
+                                        ?.toIntOrNull()
+                                        ?: DEFAULT_LIST_LIMIT
+                                val session = call.request.queryParameters["session"]
+                                call.respond(handlers.listCalls(search, limit, session))
+                            }
+                            get("/calls/{id}") {
+                                val id = call.parameters["id"]
+                                val dto = id?.let { handlers.getCall(it) }
+                                if (dto == null) {
+                                    call.respond(HttpStatusCode.NotFound)
+                                } else {
+                                    call.respond(dto)
+                                }
+                            }
+                            delete("/calls") {
+                                val session = call.request.queryParameters["session"]
+                                call.respond(handlers.clearCalls(session))
+                            }
+                            get("/calls/{id}/curl") {
+                                val id = call.parameters["id"]
+                                val response = id?.let { handlers.buildCurl(it) }
+                                if (response == null) {
+                                    call.respond(HttpStatusCode.NotFound)
+                                } else {
+                                    call.respond(response)
+                                }
+                            }
+                            get("/export") {
+                                val format = call.request.queryParameters["format"].orEmpty()
+                                val session = call.request.queryParameters["session"] ?: "current"
+                                val exported = handlers.exportSession(format, session)
+                                if (exported == null) {
+                                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("invalid_export_request"))
+                                } else {
+                                    call.respondText(exported, format.exportContentType())
+                                }
                             }
                         }
-                        get("/export") {
-                            val format = call.request.queryParameters["format"].orEmpty()
-                            val session = call.request.queryParameters["session"] ?: "current"
-                            val exported = handlers.exportSession(format, session)
-                            if (exported == null) {
-                                call.respond(HttpStatusCode.BadRequest, ErrorResponse("invalid_export_request"))
-                            } else {
-                                call.respondText(exported, format.exportContentType())
+
+                        webSocket("/ws/v1/calls") {
+                            if (!call.isAuthorized()) {
+                                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "unauthorized"))
+                                return@webSocket
+                            }
+
+                            wsSessions.register(this)
+                            try {
+                                for (ignored in incoming) {
+                                    // The browser client only receives server-pushed call updates.
+                                }
+                            } finally {
+                                wsSessions.unregister(this)
                             }
                         }
                     }
-
-                    webSocket("/ws/v1/calls") {
-                        if (!call.isAuthorized()) {
-                            close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "unauthorized"))
-                            return@webSocket
-                        }
-
-                        wsSessions.register(this)
-                        try {
-                            for (ignored in incoming) {
-                                // The browser client only receives server-pushed call updates.
-                            }
-                        } finally {
-                            wsSessions.unregister(this)
-                        }
-                    }
-                }
-            }.start(wait = false)
+                }.start(wait = false)
 
             engine = startedEngine
             session = newSession
@@ -212,14 +216,15 @@ internal class NetworkBrowserServer(
      * inherited (non-deprecated) [io.ktor.util.pipeline.PipelineContext.finish] keeps the original
      * short-circuiting behavior.
      */
-    private fun apiAuthPlugin() = createRouteScopedPlugin("ApiAuth") {
-        checkNotNull(route) { "apiAuthPlugin must be installed on a route" }
-            .intercept(ApplicationCallPipeline.Call) {
-                if (!call.authorize()) {
-                    finish()
+    private fun apiAuthPlugin() =
+        createRouteScopedPlugin("ApiAuth") {
+            checkNotNull(route) { "apiAuthPlugin must be installed on a route" }
+                .intercept(ApplicationCallPipeline.Call) {
+                    if (!call.authorize()) {
+                        finish()
+                    }
                 }
-            }
-    }
+        }
 
     private suspend fun ApplicationCall.authorize(): Boolean {
         if (isAuthorized()) return true
@@ -246,7 +251,9 @@ internal class NetworkBrowserServer(
     }
 
     @Serializable
-    private data class ErrorResponse(val error: String)
+    private data class ErrorResponse(
+        val error: String,
+    )
 
     private companion object {
         const val DEFAULT_LIST_LIMIT = 250
@@ -255,12 +262,14 @@ internal class NetworkBrowserServer(
 }
 
 private val BindPolicy.host: String
-    get() = when (this) {
-        BindPolicy.LAN -> "0.0.0.0"
-        BindPolicy.LOOPBACK -> "127.0.0.1"
-    }
+    get() =
+        when (this) {
+            BindPolicy.LAN -> "0.0.0.0"
+            BindPolicy.LOOPBACK -> "127.0.0.1"
+        }
 
-private fun String.exportContentType(): ContentType = when (lowercase()) {
-    "curl" -> ContentType.Text.Plain
-    else -> ContentType.Application.Json
-}
+private fun String.exportContentType(): ContentType =
+    when (lowercase()) {
+        "curl" -> ContentType.Text.Plain
+        else -> ContentType.Application.Json
+    }

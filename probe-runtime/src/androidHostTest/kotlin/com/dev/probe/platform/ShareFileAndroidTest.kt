@@ -47,8 +47,11 @@ class ShareFileAndroidTest {
         companion object {
             @JvmStatic
             @Implementation
-            fun getUriForFile(context: Context, authority: String, file: File): Uri =
-                Uri.parse("content://$authority/${file.name}")
+            fun getUriForFile(
+                context: Context,
+                authority: String,
+                file: File,
+            ): Uri = Uri.parse("content://$authority/${file.name}")
         }
     }
 }

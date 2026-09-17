@@ -16,6 +16,7 @@ internal interface BrowserServer {
     )
 
     suspend fun stop()
+
     fun broadcastCallUpdated(dto: NetworkCallDto)
 }
 
@@ -53,9 +54,10 @@ internal class NetworkBrowserController(
                 startObservation()
             },
             onError = { throwable ->
-                _connectionInfo.value = BrowserConnectionInfo.Error(
-                    throwable.message ?: DEFAULT_ERROR_MESSAGE,
-                )
+                _connectionInfo.value =
+                    BrowserConnectionInfo.Error(
+                        throwable.message ?: DEFAULT_ERROR_MESSAGE,
+                    )
             },
         )
     }
@@ -85,21 +87,23 @@ internal class NetworkBrowserController(
     }
 
     private fun startObservation() {
-        observeJob = scope.launch {
-            repository.observeActiveCalls("").collectLatest { calls ->
-                val nextSnapshot = calls.associate { call ->
-                    val dto = call.toDto()
-                    call.id to dto
-                }
+        observeJob =
+            scope.launch {
+                repository.observeActiveCalls("").collectLatest { calls ->
+                    val nextSnapshot =
+                        calls.associate { call ->
+                            val dto = call.toDto()
+                            call.id to dto
+                        }
 
-                nextSnapshot.forEach { (id, dto) ->
-                    if (lastSnapshot[id] != dto) {
-                        server.broadcastCallUpdated(dto)
+                    nextSnapshot.forEach { (id, dto) ->
+                        if (lastSnapshot[id] != dto) {
+                            server.broadcastCallUpdated(dto)
+                        }
                     }
+                    lastSnapshot = nextSnapshot
                 }
-                lastSnapshot = nextSnapshot
             }
-        }
     }
 
     private fun cancelObservation(resetSnapshot: Boolean) {
@@ -114,21 +118,24 @@ internal class NetworkBrowserController(
         val tokenQuery = "?token=${session.token}"
         val wifiIpAddress = addressProvider.wifiIpAddress() ?: FALLBACK_IP_ADDRESS
 
-        _connectionInfo.value = BrowserConnectionInfo.Running(
-            port = config.port,
-            token = session.token,
-            wifiUrl = "http://$wifiIpAddress:${config.port}/$tokenQuery",
-            emulatorUrl = if (addressProvider.isEmulator()) {
-                "http://$ANDROID_EMULATOR_HOST:${config.port}/$tokenQuery"
-            } else {
-                null
-            },
-            simulatorUrl = if (addressProvider.isSimulator()) {
-                "http://$LOCALHOST:${config.port}/$tokenQuery"
-            } else {
-                null
-            },
-        )
+        _connectionInfo.value =
+            BrowserConnectionInfo.Running(
+                port = config.port,
+                token = session.token,
+                wifiUrl = "http://$wifiIpAddress:${config.port}/$tokenQuery",
+                emulatorUrl =
+                    if (addressProvider.isEmulator()) {
+                        "http://$ANDROID_EMULATOR_HOST:${config.port}/$tokenQuery"
+                    } else {
+                        null
+                    },
+                simulatorUrl =
+                    if (addressProvider.isSimulator()) {
+                        "http://$LOCALHOST:${config.port}/$tokenQuery"
+                    } else {
+                        null
+                    },
+            )
     }
 
     private class RealBrowserServer(
@@ -137,13 +144,14 @@ internal class NetworkBrowserController(
         maxEntries: Int,
         deviceName: () -> String,
     ) : BrowserServer {
-        private val delegate = NetworkBrowserServer(
-            config = config,
-            handlers = NetworkBrowserHandlers(repository, maxEntries),
-            staticAssets = BrowserStaticAssets(),
-            wsSessions = BrowserWebSocketSessions(),
-            deviceName = deviceName,
-        )
+        private val delegate =
+            NetworkBrowserServer(
+                config = config,
+                handlers = NetworkBrowserHandlers(repository, maxEntries),
+                staticAssets = BrowserStaticAssets(),
+                wsSessions = BrowserWebSocketSessions(),
+                deviceName = deviceName,
+            )
 
         override fun start(
             onStarted: (BrowserSession) -> Unit,

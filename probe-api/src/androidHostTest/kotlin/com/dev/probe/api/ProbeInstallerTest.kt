@@ -10,7 +10,6 @@ import kotlin.test.assertEquals
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeInstallerTest {
-
     private val testPlatformContext by lazy {
         ProbePlatformContext(ApplicationProvider.getApplicationContext<Application>())
     }
@@ -31,7 +30,10 @@ class ProbeInstallerTest {
         var installedWith: ProbeConfig? = null
         ProbeInstaller.register(
             object : ProbeInstaller.Hook {
-                override fun install(config: ProbeConfig, platform: ProbePlatformContext) {
+                override fun install(
+                    config: ProbeConfig,
+                    platform: ProbePlatformContext,
+                ) {
                     installedWith = config
                 }
             },

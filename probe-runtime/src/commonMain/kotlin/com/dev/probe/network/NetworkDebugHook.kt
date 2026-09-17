@@ -1,7 +1,7 @@
 package com.dev.probe.network
 
-import com.dev.probe.api.HttpClientDebugHook
 import com.dev.probe.ProbeCaptureLimits
+import com.dev.probe.api.HttpClientDebugHook
 import com.dev.probe.session.DebugSessionManager
 import io.ktor.client.HttpClientConfig
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +18,6 @@ internal class NetworkDebugHook(
     private val sessionManager: DebugSessionManager,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
 ) : HttpClientDebugHook {
-
     override fun HttpClientConfig<*>.install() {
         install(NetworkDebugClientPlugin) {
             this.repository = this@NetworkDebugHook.repository

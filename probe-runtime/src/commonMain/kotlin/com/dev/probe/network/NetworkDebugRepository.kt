@@ -21,15 +21,17 @@ internal class NetworkDebugRepository(
     private val scope: CoroutineScope,
     private val sessionManager: DebugSessionManager,
 ) {
-    fun observeCalls(sessionId: String, searchQuery: String): Flow<List<NetworkCall>> =
+    fun observeCalls(
+        sessionId: String,
+        searchQuery: String,
+    ): Flow<List<NetworkCall>> =
         dao.observeSearch(sessionId, searchQuery, config.maxEntries).map { entities ->
             entities.map { it.toDomain() }
         }
 
     /** Session-agnostic view for callers (UI, browser bridge) that always want the current session. */
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeActiveCalls(searchQuery: String): Flow<List<NetworkCall>> =
-        sessionManager.activeSession().flatMapLatest { session -> observeCalls(session.id, searchQuery) }
+    fun observeActiveCalls(searchQuery: String): Flow<List<NetworkCall>> = sessionManager.activeSession().flatMapLatest { session -> observeCalls(session.id, searchQuery) }
 
     suspend fun insertPending(call: NetworkCall) {
         val sessionId = sessionManager.activeSession().value.id
@@ -37,13 +39,15 @@ internal class NetworkDebugRepository(
         scope.launch { dao.enforceCountCapForSession(sessionId, config.maxEntries) }
     }
 
-    suspend fun update(id: String, transform: (NetworkCall) -> NetworkCall) {
+    suspend fun update(
+        id: String,
+        transform: (NetworkCall) -> NetworkCall,
+    ) {
         val entity = dao.getById(id) ?: return
         dao.insert(transform(entity.toDomain()).toEntity(entity.sessionId))
     }
 
-    suspend fun getById(id: String): NetworkCall? =
-        dao.getById(id)?.toDomain()
+    suspend fun getById(id: String): NetworkCall? = dao.getById(id)?.toDomain()
 
     /** Clears only [sessionId]'s captured calls — never every session (that's [DebugSessionManager.onClearData]'s job). */
     suspend fun clear(sessionId: String) = dao.clearSession(sessionId)
@@ -54,12 +58,16 @@ internal class NetworkDebugRepository(
      * session for missing/unknown values; returns `null` when "previous" is requested but no
      * previous session exists yet.
      */
-    suspend fun resolveSessionId(sessionQuery: String?): String? = when (sessionQuery?.lowercase()) {
-        SESSION_QUERY_PREVIOUS -> sessionManager.availableSessions().first()
-            .firstOrNull { it.role == SessionRole.PREVIOUS }
-            ?.id
-        else -> sessionManager.activeSession().value.id
-    }
+    suspend fun resolveSessionId(sessionQuery: String?): String? =
+        when (sessionQuery?.lowercase()) {
+            SESSION_QUERY_PREVIOUS ->
+                sessionManager
+                    .availableSessions()
+                    .first()
+                    .firstOrNull { it.role == SessionRole.PREVIOUS }
+                    ?.id
+            else -> sessionManager.activeSession().value.id
+        }
 
     private companion object {
         const val SESSION_QUERY_PREVIOUS = "previous"

@@ -159,11 +159,12 @@ private suspend fun completeCapture(
     saved: HttpClientCall,
 ) {
     val contentType = saved.response.headers[HttpHeaders.ContentType]
-    val responseBodyText = if (isBinaryContentType(contentType)) {
-        "[binary body omitted]"
-    } else {
-        runCatching { saved.response.bodyAsText() }.getOrElse { "[body unavailable]" }
-    }
+    val responseBodyText =
+        if (isBinaryContentType(contentType)) {
+            "[binary body omitted]"
+        } else {
+            runCatching { saved.response.bodyAsText() }.getOrElse { "[body unavailable]" }
+        }
     val durationMs = Clock.System.now().toEpochMilliseconds() - startedAt
 
     repository.update(callId) {
@@ -205,17 +206,17 @@ private fun HttpRequestBuilder.captureHeaders(): Map<String, String> {
     return merged
 }
 
-private fun Headers.toStringMap(): Map<String, String> =
-    entries().associate { (key, values) -> key to values.joinToString("; ") }
+private fun Headers.toStringMap(): Map<String, String> = entries().associate { (key, values) -> key to values.joinToString("; ") }
 
 private val BINARY_CONTENT_TYPE_PREFIXES = listOf("image/", "audio/", "video/", "font/")
-private val BINARY_CONTENT_TYPES = setOf(
-    "application/octet-stream",
-    "application/pdf",
-    "application/zip",
-    "application/gzip",
-    "application/x-protobuf",
-)
+private val BINARY_CONTENT_TYPES =
+    setOf(
+        "application/octet-stream",
+        "application/pdf",
+        "application/zip",
+        "application/gzip",
+        "application/x-protobuf",
+    )
 
 private fun isBinaryContentType(contentType: String?): Boolean {
     if (contentType == null) return false

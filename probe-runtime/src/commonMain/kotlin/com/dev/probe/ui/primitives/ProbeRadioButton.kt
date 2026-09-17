@@ -15,8 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.semiBold
@@ -32,15 +32,16 @@ internal fun ProbeRadioButton(
 ) {
     val colors = LocalProbeColors.current
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (!readOnly) {
-                    Modifier.clickable(onClick = onChecked)
-                } else {
-                    Modifier
-                },
-            ).padding(innerPadding),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .then(
+                    if (!readOnly) {
+                        Modifier.clickable(onClick = onChecked)
+                    } else {
+                        Modifier
+                    },
+                ).padding(innerPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -48,19 +49,18 @@ internal fun ProbeRadioButton(
             selected = checked,
             onClick = if (!readOnly) onChecked else null,
             enabled = !readOnly,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = colors.primary,
-                unselectedColor = colors.textSecondary,
-            ),
+            colors =
+                RadioButtonDefaults.colors(
+                    selectedColor = colors.primary,
+                    unselectedColor = colors.textSecondary,
+                ),
         )
         Row(
             modifier = Modifier.weight(1f),
-            content = content
+            content = content,
         )
-
     }
 }
-
 
 @ThemePreviews
 @Composable
@@ -83,7 +83,7 @@ private fun ProbeRadioButtonPreview() {
                             color = LocalProbeColors.current.textSecondary,
                         )
                     }
-                }
+                },
             )
             ProbeRadioButton(
                 onChecked = {},
@@ -101,7 +101,7 @@ private fun ProbeRadioButtonPreview() {
                             color = LocalProbeColors.current.textSecondary,
                         )
                     }
-                }
+                },
             )
         }
     }

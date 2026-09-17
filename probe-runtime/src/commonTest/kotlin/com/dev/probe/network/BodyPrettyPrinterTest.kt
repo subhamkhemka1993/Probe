@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class BodyPrettyPrinterTest {
-
     @Test
     fun prettyPrintJson_indents() {
         val input = """{"a":1,"b":[2,3]}"""

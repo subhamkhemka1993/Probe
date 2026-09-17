@@ -16,5 +16,4 @@ internal fun buildCurl(call: NetworkCall): String {
     return parts.joinToString(" \\\n  ")
 }
 
-private fun escapeSingleQuotes(value: String): String =
-    value.replace("'", "'\"'\"'")
+private fun escapeSingleQuotes(value: String): String = value.replace("'", "'\"'\"'")

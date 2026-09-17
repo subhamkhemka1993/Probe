@@ -6,18 +6,19 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class CurlBuilderTest {
-
     @Test
     fun buildsCurlWithRedactedAuthorization() {
-        val call = sampleCall(
-            method = "POST",
-            url = "https://api.zebpay.com/v1/foo",
-            requestHeaders = mapOf(
-                "Authorization" to "***",
-                "Content-Type" to "application/json",
-            ),
-            requestBody = """{"a":1}""",
-        )
+        val call =
+            sampleCall(
+                method = "POST",
+                url = "https://api.zebpay.com/v1/foo",
+                requestHeaders =
+                    mapOf(
+                        "Authorization" to "***",
+                        "Content-Type" to "application/json",
+                    ),
+                requestBody = """{"a":1}""",
+            )
 
         val curl = buildCurl(call)
 
@@ -29,12 +30,13 @@ class CurlBuilderTest {
 
     @Test
     fun buildsCurlWithPostJsonBody() {
-        val call = sampleCall(
-            method = "POST",
-            url = "https://api.zebpay.com/v1/login",
-            requestHeaders = mapOf("Content-Type" to "application/json"),
-            requestBody = """{"email":"user@example.com","password":"secret"}""",
-        )
+        val call =
+            sampleCall(
+                method = "POST",
+                url = "https://api.zebpay.com/v1/login",
+                requestHeaders = mapOf("Content-Type" to "application/json"),
+                requestBody = """{"email":"user@example.com","password":"secret"}""",
+            )
 
         val curl = buildCurl(call)
 

@@ -25,8 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.semiBold
@@ -52,12 +52,13 @@ internal class ProbeTabState(
 internal fun rememberProbeTabState(
     initialSelectedIndex: Int = 0,
     style: ProbeTabBarStyle = ProbeTabBarStyle.Tertiary,
-): ProbeTabState = remember {
-    ProbeTabState(
-        selectedIndex = mutableIntStateOf(initialSelectedIndex),
-        style = style,
-    )
-}
+): ProbeTabState =
+    remember {
+        ProbeTabState(
+            selectedIndex = mutableIntStateOf(initialSelectedIndex),
+            style = style,
+        )
+    }
 
 @Composable
 internal fun ProbeTabBar(
@@ -72,52 +73,57 @@ internal fun ProbeTabBar(
     Box(modifier = modifier.fillMaxWidth()) {
         if (tabState.style == ProbeTabBarStyle.Tertiary) {
             HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter),
                 thickness = 1.dp,
                 color = colors.divider,
             )
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = when (tabState.style) {
-                        ProbeTabBarStyle.Tertiary -> 16.dp
-                        ProbeTabBarStyle.Secondary -> 8.dp
-                    },
-                ),
-            horizontalArrangement = when (tabState.style) {
-                ProbeTabBarStyle.Tertiary -> Arrangement.spacedBy(16.dp)
-                ProbeTabBarStyle.Secondary -> Arrangement.spacedBy(8.dp)
-            },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal =
+                            when (tabState.style) {
+                                ProbeTabBarStyle.Tertiary -> 16.dp
+                                ProbeTabBarStyle.Secondary -> 8.dp
+                            },
+                    ),
+            horizontalArrangement =
+                when (tabState.style) {
+                    ProbeTabBarStyle.Tertiary -> Arrangement.spacedBy(16.dp)
+                    ProbeTabBarStyle.Secondary -> Arrangement.spacedBy(8.dp)
+                },
         ) {
             tabItems.forEachIndexed { index, label ->
                 val selected = tabState.isSelected(index)
-                val tabModifier = when (tabState.style) {
-                    ProbeTabBarStyle.Tertiary -> Modifier
-                        .clickable {
-                            tabState.select(index)
-                            onTabSelected(index)
-                        }
+                val tabModifier =
+                    when (tabState.style) {
+                        ProbeTabBarStyle.Tertiary ->
+                            Modifier
+                                .clickable {
+                                    tabState.select(index)
+                                    onTabSelected(index)
+                                }
 
-                    ProbeTabBarStyle.Secondary -> Modifier
-                        .clickable {
-                            tabState.select(index)
-                            onTabSelected(index)
-                        }
-                        .background(
-                            color = if (selected) colors.surface else colors.background,
-                            shape = RoundedCornerShape(8.dp),
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                }
+                        ProbeTabBarStyle.Secondary ->
+                            Modifier
+                                .clickable {
+                                    tabState.select(index)
+                                    onTabSelected(index)
+                                }.background(
+                                    color = if (selected) colors.surface else colors.background,
+                                    shape = RoundedCornerShape(8.dp),
+                                ).padding(horizontal = 8.dp, vertical = 4.dp)
+                    }
 
                 Column(
                     modifier = tabModifier,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         modifier = Modifier.padding(vertical = 4.dp),
@@ -133,9 +139,10 @@ internal fun ProbeTabBar(
                         exit = scaleOut(tween(500)),
                     ) {
                         Spacer(
-                            modifier = Modifier
-                                .size(20.dp, 2.dp)
-                                .background(colors.primary),
+                            modifier =
+                                Modifier
+                                    .size(20.dp, 2.dp)
+                                    .background(colors.primary),
                         )
                     }
                 }

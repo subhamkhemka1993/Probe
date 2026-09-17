@@ -38,25 +38,31 @@ internal object NetworkBodyFormatter {
         return FormattedBody(displayText = placeholder, fullText = placeholder)
     }
 
-    fun prepare(body: String?, contentType: String? = null): FormattedBody {
+    fun prepare(
+        body: String?,
+        contentType: String? = null,
+    ): FormattedBody {
         if (body.isNullOrBlank()) return empty()
         val trimmed = body.trim()
         val pretty = BodyPrettyPrinter.format(trimmed, contentType)
-        val display = if (pretty.length > DISPLAY_MAX_CHARS) {
-            buildString {
-                append(pretty.take(DISPLAY_MAX_CHARS))
-                append("\n\n… truncated (")
-                append(trimmed.length)
-                append(" chars total — use Copy for full body)")
+        val display =
+            if (pretty.length > DISPLAY_MAX_CHARS) {
+                buildString {
+                    append(pretty.take(DISPLAY_MAX_CHARS))
+                    append("\n\n… truncated (")
+                    append(trimmed.length)
+                    append(" chars total — use Copy for full body)")
+                }
+            } else {
+                pretty
             }
-        } else {
-            pretty
-        }
         return FormattedBody(displayText = display, fullText = trimmed)
     }
 
-    fun formatForCopy(body: String, contentType: String? = null): String =
-        BodyPrettyPrinter.format(body, contentType)
+    fun formatForCopy(
+        body: String,
+        contentType: String? = null,
+    ): String = BodyPrettyPrinter.format(body, contentType)
 }
 
 internal fun NetworkCall.statusPresentation(): NetworkStatusPresentation {
@@ -71,8 +77,7 @@ internal fun NetworkCall.statusPresentation(): NetworkStatusPresentation {
     }
 }
 
-internal fun NetworkCall.durationLabel(): String =
-    durationMs?.let { "${it}ms" } ?: if (isComplete) "—" else "…"
+internal fun NetworkCall.durationLabel(): String = durationMs?.let { "${it}ms" } ?: if (isComplete) "—" else "…"
 
 internal fun NetworkCall.responseSizeLabel(): String {
     if (!isComplete) return "…"
@@ -93,38 +98,45 @@ internal fun NetworkCall.responseSizeLabel(): String {
     }
 }
 
-private fun NetworkCall.isResponseBodyTruncated(): Boolean =
-    responseBody?.contains("… [truncated at") == true
+private fun NetworkCall.isResponseBodyTruncated(): Boolean = responseBody?.contains("… [truncated at") == true
 
 private fun Map<String, String>.contentLengthBytes(): Long? =
-    entries.firstOrNull { it.key.equals("Content-Length", ignoreCase = true) }
+    entries
+        .firstOrNull { it.key.equals("Content-Length", ignoreCase = true) }
         ?.value
         ?.toLongOrNull()
         ?.takeIf { it >= 0L }
 
-internal fun formatNetworkByteSize(bytes: Long): String = when {
-    bytes < 1_024L -> "$bytes B"
-    bytes < 1_024L * 1_024L -> formatNetworkByteSizeUnit(bytes, 1_024L, "KB")
-    else -> formatNetworkByteSizeUnit(bytes, 1_024L * 1_024L, "MB")
-}
+internal fun formatNetworkByteSize(bytes: Long): String =
+    when {
+        bytes < 1_024L -> "$bytes B"
+        bytes < 1_024L * 1_024L -> formatNetworkByteSizeUnit(bytes, 1_024L, "KB")
+        else -> formatNetworkByteSizeUnit(bytes, 1_024L * 1_024L, "MB")
+    }
 
-private fun formatNetworkByteSizeUnit(bytes: Long, unit: Long, suffix: String): String {
+private fun formatNetworkByteSizeUnit(
+    bytes: Long,
+    unit: Long,
+    suffix: String,
+): String {
     val value = bytes.toDouble() / unit.toDouble()
     val rounded = ((value * 10).toLong()) / 10.0
-    val text = if (rounded == rounded.toLong().toDouble()) {
-        rounded.toLong().toString()
-    } else {
-        rounded.toString()
-    }
+    val text =
+        if (rounded == rounded.toLong().toDouble()) {
+            rounded.toLong().toString()
+        } else {
+            rounded.toString()
+        }
     return "$text $suffix"
 }
 
-internal fun NetworkCall.overviewStatusLabel(): String = when {
-    responseStatus != null -> responseStatus.toString()
-    error != null -> "Failed: $error"
-    !isComplete -> "Pending…"
-    else -> "—"
-}
+internal fun NetworkCall.overviewStatusLabel(): String =
+    when {
+        responseStatus != null -> responseStatus.toString()
+        error != null -> "Failed: $error"
+        !isComplete -> "Pending…"
+        else -> "—"
+    }
 
 internal fun formatNetworkTimestamp(epochMillis: Long): String {
     val instant = Instant.fromEpochMilliseconds(epochMillis)
@@ -132,7 +144,10 @@ internal fun formatNetworkTimestamp(epochMillis: Long): String {
     val hour = local.hour.toString().padStart(2, '0')
     val minute = local.minute.toString().padStart(2, '0')
     val second = local.second.toString().padStart(2, '0')
-    val month = local.month.number.toString().padStart(2, '0')
+    val month =
+        local.month.number
+            .toString()
+            .padStart(2, '0')
     val day = local.dayOfMonth.toString().padStart(2, '0')
     return "$day/$month/${local.year} $hour:$minute:$second"
 }

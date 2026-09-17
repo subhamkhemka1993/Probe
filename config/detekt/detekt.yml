@@ -1,0 +1,29 @@
+style:
+  MagicNumber:
+    # Noise for UI dimension/formatting constants; not a real defect signal here.
+    active: false
+  MaxLineLength:
+    # ktlint already has line length checking off for this project — avoid
+    # two tools disagreeing on the same thing.
+    active: false
+  UnusedPrivateMember:
+    # `@Preview`-only composables are used by tooling, not by other code —
+    # this project names them with a `*Preview` suffix.
+    allowedNames: '.*Preview'
+  ReturnCount:
+    # Early-return guard clauses are idiomatic here; 2 is too strict.
+    max: 4
+
+naming:
+  MatchingDeclarationName:
+    # KMP platform source sets use `Foo.android.kt` / `Foo.ios.kt` filenames for
+    # actual declarations named `Foo` — expected here, not a code smell.
+    active: false
+  FunctionNaming:
+    # Compose convention: composable functions are PascalCase.
+    ignoreAnnotated: ['Composable']
+    excludes:
+      - '**/commonTest/**'
+      - '**/androidHostTest/**'
+      - '**/androidDeviceTest/**'
+      - '**/iosTest/**'

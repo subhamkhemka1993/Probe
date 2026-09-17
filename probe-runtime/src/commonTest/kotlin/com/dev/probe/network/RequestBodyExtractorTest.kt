@@ -7,7 +7,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class RequestBodyExtractorTest {
-
     @Test
     fun extractsTextContentJsonBody() {
         val body = TextContent("""{"key":"value"}""", ContentType.Application.Json)

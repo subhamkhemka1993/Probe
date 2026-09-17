@@ -56,15 +56,17 @@ internal class NetworkDebugPluginUi(
             }
         }
 
-        val viewedSessionId = when (selectedRole) {
-            SessionRole.CURRENT -> activeSession.id
-            SessionRole.PREVIOUS -> previousSession?.id
-        }
+        val viewedSessionId =
+            when (selectedRole) {
+                SessionRole.CURRENT -> activeSession.id
+                SessionRole.PREVIOUS -> previousSession?.id
+            }
         val isReadOnly = selectedRole == SessionRole.PREVIOUS
 
-        val callsFlow = remember(viewedSessionId, searchQuery) {
-            viewedSessionId?.let { repository.observeCalls(it, searchQuery) } ?: flowOf(emptyList())
-        }
+        val callsFlow =
+            remember(viewedSessionId, searchQuery) {
+                viewedSessionId?.let { repository.observeCalls(it, searchQuery) } ?: flowOf(emptyList())
+            }
         val calls by callsFlow.collectAsState(initial = emptyList())
         val scope = rememberCoroutineScope()
         val selected = calls.find { it.id == selectedId }

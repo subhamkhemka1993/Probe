@@ -3,11 +3,11 @@ package com.dev.probe
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.dev.probe.api.NoOpHttpClientDebugHook
+import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbeHttpCapture
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
 import com.dev.probe.api.ProbeState
-import com.dev.probe.api.ProbeConfig
 import com.dev.probe.internal.ProbePlatformHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -20,7 +20,6 @@ import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeRuntimeStateWiringTest {
-
     private val scope = CoroutineScope(SupervisorJob())
     private val platform by lazy {
         ProbePlatformContext(ApplicationProvider.getApplicationContext<Application>())

@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.session.SessionRole
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
@@ -62,16 +62,18 @@ private fun SessionChip(
     Text(
         text = label,
         style = typography.labelMedium.semiBold(),
-        color = when {
-            !enabled -> colors.textSecondary.copy(alpha = 0.4f)
-            selected -> colors.onPrimary
-            else -> colors.textSecondary
-        },
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (selected) colors.primary else colors.surface)
-            .then(clickableModifier)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+        color =
+            when {
+                !enabled -> colors.textSecondary.copy(alpha = 0.4f)
+                selected -> colors.onPrimary
+                else -> colors.textSecondary
+            },
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(if (selected) colors.primary else colors.surface)
+                .then(clickableModifier)
+                .padding(horizontal = 12.dp, vertical = 6.dp),
     )
 }
 

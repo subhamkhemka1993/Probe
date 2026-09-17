@@ -12,7 +12,10 @@ import kotlin.concurrent.Volatile
  */
 object ProbeInstaller {
     interface Hook {
-        fun install(config: ProbeConfig, platform: ProbePlatformContext)
+        fun install(
+            config: ProbeConfig,
+            platform: ProbePlatformContext,
+        )
     }
 
     @Volatile
@@ -27,7 +30,10 @@ object ProbeInstaller {
         hook = null
     }
 
-    fun install(config: ProbeConfig, platform: ProbePlatformContext) {
+    fun install(
+        config: ProbeConfig,
+        platform: ProbePlatformContext,
+    ) {
         hook?.install(config, platform)
     }
 }

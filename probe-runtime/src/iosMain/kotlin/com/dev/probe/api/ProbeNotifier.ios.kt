@@ -15,16 +15,19 @@ internal actual open class ProbeNotifier actual constructor(
 
     actual open fun show(state: ProbeNotifierState) {
         requestAuthorizationIfNeeded()
-        val content = UNMutableNotificationContent().apply {
-            setTitle(contentTitle(state))
-            setBody(contentText(state))
-        }
-        val request = UNNotificationRequest.requestWithIdentifier(
-            identifier = PROBE_NOTIFICATION_ID,
-            content = content,
-            trigger = null,
-        )
-        UNUserNotificationCenter.currentNotificationCenter()
+        val content =
+            UNMutableNotificationContent().apply {
+                setTitle(contentTitle(state))
+                setBody(contentText(state))
+            }
+        val request =
+            UNNotificationRequest.requestWithIdentifier(
+                identifier = PROBE_NOTIFICATION_ID,
+                content = content,
+                trigger = null,
+            )
+        UNUserNotificationCenter
+            .currentNotificationCenter()
             .addNotificationRequest(request, withCompletionHandler = { _ -> })
     }
 
@@ -61,5 +64,4 @@ internal actual open class ProbeNotifier actual constructor(
     }
 }
 
-internal actual fun createProbeNotifier(platform: ProbePlatformContext): ProbeNotifier =
-    ProbeNotifier(platform)
+internal actual fun createProbeNotifier(platform: ProbePlatformContext): ProbeNotifier = ProbeNotifier(platform)

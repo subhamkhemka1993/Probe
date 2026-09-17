@@ -40,8 +40,7 @@ internal class DebugSessionManager(
 
     fun activeSession(): StateFlow<DebugSession> = _active.asStateFlow()
 
-    fun availableSessions(): Flow<List<DebugSession>> =
-        sessionDao.observeAll().map { entities -> entities.map { it.toDomain() } }
+    fun availableSessions(): Flow<List<DebugSession>> = sessionDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
     /**
      * Process bootstrap: first call in a process promotes any prior-process `current` to
@@ -50,30 +49,33 @@ internal class DebugSessionManager(
      * concurrent callers queue up and each sees the already-bootstrapped fast path once the
      * first one finishes, instead of racing into duplicate session creation.
      */
-    suspend fun ensureInitialSession(): DebugSession = bootstrapMutex.withLock {
-        if (bootstrappedThisProcess) {
-            val active = _active.value
-            if (active.id != PENDING_SESSION.id) return@withLock active
-        }
+    suspend fun ensureInitialSession(): DebugSession =
+        bootstrapMutex.withLock {
+            if (bootstrappedThisProcess) {
+                val active = _active.value
+                if (active.id != PENDING_SESSION.id) return@withLock active
+            }
 
-        val existingCurrent = sessionDao.getByRole(SESSION_ROLE_CURRENT)?.toDomain()
-        val session = if (existingCurrent != null) {
-            promoteAndStartCurrent()
-        } else {
-            createSession(role = SessionRole.CURRENT).also { _active.value = it }
+            val existingCurrent = sessionDao.getByRole(SESSION_ROLE_CURRENT)?.toDomain()
+            val session =
+                if (existingCurrent != null) {
+                    promoteAndStartCurrent()
+                } else {
+                    createSession(role = SessionRole.CURRENT).also { _active.value = it }
+                }
+            bootstrappedThisProcess = true
+            session
         }
-        bootstrappedThisProcess = true
-        session
-    }
 
     /**
      * Promotes the current session to "previous" and starts a fresh "current" session.
      * Used on process bootstrap when a prior process left a current row in Room.
      */
     private suspend fun promoteAndStartCurrent(): DebugSession {
-        val old = sessionDao.getByRole(SESSION_ROLE_CURRENT) ?: return createSession(role = SessionRole.CURRENT).also {
-            _active.value = it
-        }
+        val old =
+            sessionDao.getByRole(SESSION_ROLE_CURRENT) ?: return createSession(role = SessionRole.CURRENT).also {
+                _active.value = it
+            }
         sessionDao.updateRole(
             id = old.id,
             role = SESSION_ROLE_PREVIOUS,
@@ -101,24 +103,26 @@ internal class DebugSessionManager(
     private suspend fun createSession(role: SessionRole): DebugSession {
         val nowMillis = Clock.System.now().toEpochMilliseconds()
         val ordinal = sessionDao.getAll().size + 1
-        val session = DebugSession(
-            id = "session-$nowMillis",
-            label = "Session $ordinal",
-            startedAtMillis = nowMillis,
-            endedAtMillis = null,
-            role = role,
-        )
+        val session =
+            DebugSession(
+                id = "session-$nowMillis",
+                label = "Session $ordinal",
+                startedAtMillis = nowMillis,
+                endedAtMillis = null,
+                role = role,
+            )
         sessionDao.insert(session.toEntity())
         return session
     }
 
     private companion object {
-        val PENDING_SESSION = DebugSession(
-            id = "pending",
-            label = "Pending",
-            startedAtMillis = 0L,
-            endedAtMillis = null,
-            role = SessionRole.CURRENT,
-        )
+        val PENDING_SESSION =
+            DebugSession(
+                id = "pending",
+                label = "Pending",
+                startedAtMillis = 0L,
+                endedAtMillis = null,
+                role = SessionRole.CURRENT,
+            )
     }
 }

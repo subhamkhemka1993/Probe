@@ -6,7 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class NetworkBodyFormatterTest {
-
     @Test
     fun prepare_returnsEmptyPlaceholderForNull() {
         assertEquals("(empty)", NetworkBodyFormatter.prepare(null).displayText)

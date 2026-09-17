@@ -6,17 +6,18 @@ import java.net.NetworkInterface
 
 internal actual class LocalAddressProvider actual constructor() : BrowserAddressProvider {
     actual override fun wifiIpAddress(): String? {
-        val candidates = runCatching {
-            NetworkInterface.getNetworkInterfaces()
-                .asSequence()
-                .filter { it.isUp && !it.isLoopback }
-                .flatMap { networkInterface ->
-                    networkInterface.inetAddresses.asSequence()
-                }
-                .filterIsInstance<Inet4Address>()
-                .filterNot { it.isLoopbackAddress }
-                .toList()
-        }.getOrDefault(emptyList())
+        val candidates =
+            runCatching {
+                NetworkInterface
+                    .getNetworkInterfaces()
+                    .asSequence()
+                    .filter { it.isUp && !it.isLoopback }
+                    .flatMap { networkInterface ->
+                        networkInterface.inetAddresses.asSequence()
+                    }.filterIsInstance<Inet4Address>()
+                    .filterNot { it.isLoopbackAddress }
+                    .toList()
+            }.getOrDefault(emptyList())
 
         return candidates.firstOrNull { it.isSiteLocalAddress }?.hostAddress
             ?: candidates.firstOrNull()?.hostAddress

@@ -2,9 +2,9 @@ package com.dev.probe.startup
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
-import com.dev.probe.api.ProbeConfig
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,7 +13,6 @@ import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class InstallProbeToolsTest {
-
     private val platformContext by lazy {
         ProbePlatformContext(ApplicationProvider.getApplicationContext<Application>())
     }

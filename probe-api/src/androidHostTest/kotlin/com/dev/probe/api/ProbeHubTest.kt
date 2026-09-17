@@ -11,7 +11,6 @@ import kotlin.test.assertFalse
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeHubTest {
-
     private val platform by lazy {
         ProbePlatformContext(ApplicationProvider.getApplicationContext<Application>())
     }
@@ -38,6 +37,7 @@ class ProbeHubTest {
         ProbeHub.setHook(
             object : ProbeHub.Hook {
                 override fun isEnabled() = true
+
                 override fun openHub(context: ProbePlatformContext) {
                     openedWith = context
                 }
@@ -54,6 +54,7 @@ class ProbeHubTest {
         ProbeHub.setHook(
             object : ProbeHub.Hook {
                 override fun isEnabled() = true
+
                 override fun openHub(context: ProbePlatformContext) = Unit
             },
         )

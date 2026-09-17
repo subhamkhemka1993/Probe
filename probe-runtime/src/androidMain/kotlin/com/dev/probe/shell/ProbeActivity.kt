@@ -27,9 +27,11 @@ class ProbeActivity : ComponentActivity() {
             finish()
             return
         }
-        val screen = intent.getStringExtra(PROBE_START_SCREEN)
-            ?.let { runCatching { ProbeStartScreen.valueOf(it) }.getOrNull() }
-            ?: ProbeStartScreen.Hub
+        val screen =
+            intent
+                .getStringExtra(PROBE_START_SCREEN)
+                ?.let { runCatching { ProbeStartScreen.valueOf(it) }.getOrNull() }
+                ?: ProbeStartScreen.Hub
 
         setContent {
             val services = ProbeRuntime.services()

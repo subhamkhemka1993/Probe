@@ -11,7 +11,6 @@ import com.dev.probe.shell.ProbeNotificationPermissionActivity
 internal actual open class ProbeNotifier actual constructor(
     private val platformContext: ProbePlatformContext,
 ) {
-
     actual open fun show(state: ProbeNotifierState) {
         val context = platformContext.context
         ProbeNotificationPoster.ensureChannel(context)
@@ -31,9 +30,10 @@ internal actual open class ProbeNotifier actual constructor(
     }
 
     private fun launchPermissionRequest(context: Context) {
-        val intent = Intent(context, ProbeNotificationPermissionActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(context, ProbeNotificationPermissionActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
         context.startActivity(intent)
     }
 
@@ -46,5 +46,4 @@ internal actual open class ProbeNotifier actual constructor(
     }
 }
 
-internal actual fun createProbeNotifier(platform: ProbePlatformContext): ProbeNotifier =
-    ProbeNotifier(platform)
+internal actual fun createProbeNotifier(platform: ProbePlatformContext): ProbeNotifier = ProbeNotifier(platform)

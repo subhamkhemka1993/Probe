@@ -5,7 +5,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class NetworkResponseSizeTest {
-
     @Test
     fun formatNetworkByteSize_usesBytesForSmallValues() {
         assertEquals("512 B", formatNetworkByteSize(512))
@@ -18,10 +17,11 @@ class NetworkResponseSizeTest {
 
     @Test
     fun responseSizeLabel_prefersContentLengthHeader() {
-        val call = sampleCall(
-            responseHeaders = mapOf("Content-Length" to "2048"),
-            responseBody = "{}",
-        )
+        val call =
+            sampleCall(
+                responseHeaders = mapOf("Content-Length" to "2048"),
+                responseBody = "{}",
+            )
         assertEquals("2 KB", call.responseSizeLabel())
     }
 

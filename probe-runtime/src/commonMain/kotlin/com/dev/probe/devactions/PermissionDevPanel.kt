@@ -20,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.preview.ProbeBackgroundPreviewContainer
+import com.dev.probe.preview.ThemePreviews
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.medium
@@ -36,12 +36,13 @@ private suspend fun knownPermissionRows(controller: PermissionDevActionsControll
         PermissionRow(id = known.id, label = known.label, state = controller.statusOf(known.id))
     }
 
-private fun PermissionState.displayLabel(): String = when (this) {
-    PermissionState.Granted -> "Granted"
-    PermissionState.Denied -> "Denied"
-    PermissionState.NotDetermined -> "Not requested"
-    PermissionState.Unsupported -> "Not declared by host app"
-}
+private fun PermissionState.displayLabel(): String =
+    when (this) {
+        PermissionState.Granted -> "Granted"
+        PermissionState.Denied -> "Denied"
+        PermissionState.NotDetermined -> "Not requested"
+        PermissionState.Unsupported -> "Not declared by host app"
+    }
 
 @Composable
 private fun PermissionState.displayColor(): Color {
@@ -107,7 +108,7 @@ internal fun PermissionDevPanelContent(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         rows.forEachIndexed { index, row ->
             PermissionDevPanelRow(row = row, onRequest = onRequest)
@@ -132,24 +133,24 @@ private fun PermissionDevPanelRow(
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = row.label,
                 style = typography.bodyMedium.semiBold(),
-                color = colors.textPrimary
+                color = colors.textPrimary,
             )
             Text(
                 text = row.state.displayLabel(),
                 style = typography.labelMedium.medium(),
-                color = row.state.displayColor()
+                color = row.state.displayColor(),
             )
         }
         if (row.state == PermissionState.Denied || row.state == PermissionState.NotDetermined) {
             ProbePrimaryButton(
                 title = "Request",
                 onClick = { onRequest(row.id) },
-                minHeight = 36.dp
+                minHeight = 36.dp,
             )
         }
     }
@@ -160,19 +161,20 @@ private fun PermissionDevPanelRow(
 private fun PermissionDevPanelContentPreview() {
     ProbeBackgroundPreviewContainer {
         PermissionDevPanelContent(
-            rows = listOf(
-                PermissionRow(
-                    id = "notifications",
-                    label = "Notifications",
-                    state = PermissionState.Granted
+            rows =
+                listOf(
+                    PermissionRow(
+                        id = "notifications",
+                        label = "Notifications",
+                        state = PermissionState.Granted,
+                    ),
+                    PermissionRow(id = "camera", label = "Camera", state = PermissionState.Denied),
+                    PermissionRow(
+                        id = "location",
+                        label = "Location",
+                        state = PermissionState.NotDetermined,
+                    ),
                 ),
-                PermissionRow(id = "camera", label = "Camera", state = PermissionState.Denied),
-                PermissionRow(
-                    id = "location",
-                    label = "Location",
-                    state = PermissionState.NotDetermined
-                ),
-            ),
             onRequest = {},
         )
     }

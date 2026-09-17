@@ -17,26 +17,30 @@ import kotlin.test.assertTrue
  * ids, bypassing [DebugSessionManager]'s single-active-session bootstrap.
  */
 internal class NetworkDebugRepositoryClearScopeTest {
-
     @Test
-    fun clearIsScopedToOneSession() = runTest {
-        val dao = InMemoryNetworkCallDao()
-        val repository = NetworkDebugRepository(
-            dao = dao,
-            config = ProbeCaptureLimits(),
-            scope = this,
-            sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao),
-        )
-        dao.insert(sampleCall(id = "call-a", sessionId = "session-a"))
-        dao.insert(sampleCall(id = "call-b", sessionId = "session-b"))
+    fun clearIsScopedToOneSession() =
+        runTest {
+            val dao = InMemoryNetworkCallDao()
+            val repository =
+                NetworkDebugRepository(
+                    dao = dao,
+                    config = ProbeCaptureLimits(),
+                    scope = this,
+                    sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao),
+                )
+            dao.insert(sampleCall(id = "call-a", sessionId = "session-a"))
+            dao.insert(sampleCall(id = "call-b", sessionId = "session-b"))
 
-        repository.clear(sessionId = "session-a")
+            repository.clear(sessionId = "session-a")
 
-        assertTrue(repository.observeCalls("session-a", "").first().isEmpty())
-        assertEquals(1, repository.observeCalls("session-b", "").first().size)
-    }
+            assertTrue(repository.observeCalls("session-a", "").first().isEmpty())
+            assertEquals(1, repository.observeCalls("session-b", "").first().size)
+        }
 
-    private fun sampleCall(id: String, sessionId: String) = NetworkCallEntity(
+    private fun sampleCall(
+        id: String,
+        sessionId: String,
+    ) = NetworkCallEntity(
         id = id,
         timestampMillis = 0L,
         method = "GET",

@@ -14,11 +14,9 @@ import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 
 actual object ProbeLauncher {
-    actual fun openHub(ctx: ProbePlatformContext) =
-        ProbeViewControllerPresenter.present(screen = ProbeStartScreen.Hub)
+    actual fun openHub(ctx: ProbePlatformContext) = ProbeViewControllerPresenter.present(screen = ProbeStartScreen.Hub)
 
-    actual fun openInspector(ctx: ProbePlatformContext) =
-        ProbeViewControllerPresenter.present(screen = ProbeStartScreen.Inspector)
+    actual fun openInspector(ctx: ProbePlatformContext) = ProbeViewControllerPresenter.present(screen = ProbeStartScreen.Inspector)
 }
 
 /**
@@ -55,15 +53,16 @@ internal object ProbeViewControllerPresenter {
     private fun watchForClose() {
         watcherJob?.cancel()
         var sawScreen = false
-        watcherJob = scope.launch {
-            Probe.screen.collect { current ->
-                if (current != null) {
-                    sawScreen = true
-                } else if (sawScreen) {
-                    dismiss()
+        watcherJob =
+            scope.launch {
+                Probe.screen.collect { current ->
+                    if (current != null) {
+                        sawScreen = true
+                    } else if (sawScreen) {
+                        dismiss()
+                    }
                 }
             }
-        }
     }
 
     private fun dismiss() {

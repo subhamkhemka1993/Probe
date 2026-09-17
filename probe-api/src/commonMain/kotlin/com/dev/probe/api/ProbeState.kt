@@ -11,11 +11,13 @@ import kotlin.concurrent.Volatile
 object ProbeState {
     interface Callbacks {
         fun onAppBackgrounded()
+
         fun onAppForegrounded()
     }
 
     private object NoOpCallbacks : Callbacks {
         override fun onAppBackgrounded() = Unit
+
         override fun onAppForegrounded() = Unit
     }
 

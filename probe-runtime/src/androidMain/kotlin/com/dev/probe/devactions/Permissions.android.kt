@@ -27,8 +27,9 @@ internal actual class PermissionDevActionsController internal constructor(
     actual suspend fun statusOf(id: String): PermissionState {
         val manifestPermission = id.toManifestPermission() ?: return PermissionState.Unsupported
         if (!isDeclared(manifestPermission)) return PermissionState.Unsupported
-        val granted = ContextCompat.checkSelfPermission(context, manifestPermission) ==
-            PackageManager.PERMISSION_GRANTED
+        val granted =
+            ContextCompat.checkSelfPermission(context, manifestPermission) ==
+                PackageManager.PERMISSION_GRANTED
         return if (granted) PermissionState.Granted else PermissionState.NotDetermined
     }
 
@@ -51,35 +52,39 @@ internal actual class PermissionDevActionsController internal constructor(
     }
 
     actual fun openAppSettings() {
-        val intent = Intent(
-            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.fromParts("package", context.packageName, null),
-        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val intent =
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", context.packageName, null),
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }
 
     /** Manifest declaration gate — moko can't distinguish "not declared" from "denied". */
-    private fun isDeclared(manifestPermission: String): Boolean = runCatching {
-        @Suppress("DEPRECATION")
-        context.packageManager
-            .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
-            .requestedPermissions
-            ?.contains(manifestPermission)
-    }.getOrNull() ?: false
+    private fun isDeclared(manifestPermission: String): Boolean =
+        runCatching {
+            @Suppress("DEPRECATION")
+            context.packageManager
+                .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+                .requestedPermissions
+                ?.contains(manifestPermission)
+        }.getOrNull() ?: false
 
-    private fun String.toManifestPermission(): String? = when (this) {
-        KnownPermission.Notifications.id -> Manifest.permission.POST_NOTIFICATIONS
-        KnownPermission.Camera.id -> Manifest.permission.CAMERA
-        KnownPermission.Location.id -> Manifest.permission.ACCESS_FINE_LOCATION
-        else -> null
-    }
+    private fun String.toManifestPermission(): String? =
+        when (this) {
+            KnownPermission.Notifications.id -> Manifest.permission.POST_NOTIFICATIONS
+            KnownPermission.Camera.id -> Manifest.permission.CAMERA
+            KnownPermission.Location.id -> Manifest.permission.ACCESS_FINE_LOCATION
+            else -> null
+        }
 
-    private fun String.toMokoPermission(): Permission? = when (this) {
-        KnownPermission.Notifications.id -> Permission.REMOTE_NOTIFICATION
-        KnownPermission.Camera.id -> Permission.CAMERA
-        KnownPermission.Location.id -> Permission.LOCATION
-        else -> null
-    }
+    private fun String.toMokoPermission(): Permission? =
+        when (this) {
+            KnownPermission.Notifications.id -> Permission.REMOTE_NOTIFICATION
+            KnownPermission.Camera.id -> Permission.CAMERA
+            KnownPermission.Location.id -> Permission.LOCATION
+            else -> null
+        }
 }
 
 @Composable

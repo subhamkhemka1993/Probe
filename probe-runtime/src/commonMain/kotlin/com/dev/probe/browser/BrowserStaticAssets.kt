@@ -8,6 +8,8 @@ internal class BrowserStaticAssets(
     private val js by lazy { resourceLoader("files/browser/app.js") }
 
     fun indexHtml(): String = index
+
     fun stylesCss(): String = css
+
     fun appJs(): String = js
 }

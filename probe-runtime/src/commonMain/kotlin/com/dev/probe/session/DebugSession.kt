@@ -13,18 +13,20 @@ internal enum class SessionRole { CURRENT, PREVIOUS }
 internal const val SESSION_ROLE_CURRENT = "current"
 internal const val SESSION_ROLE_PREVIOUS = "previous"
 
-internal fun DebugSessionEntity.toDomain(): DebugSession = DebugSession(
-    id = id,
-    label = label,
-    startedAtMillis = startedAtMillis,
-    endedAtMillis = endedAtMillis,
-    role = if (role == SESSION_ROLE_CURRENT) SessionRole.CURRENT else SessionRole.PREVIOUS,
-)
+internal fun DebugSessionEntity.toDomain(): DebugSession =
+    DebugSession(
+        id = id,
+        label = label,
+        startedAtMillis = startedAtMillis,
+        endedAtMillis = endedAtMillis,
+        role = if (role == SESSION_ROLE_CURRENT) SessionRole.CURRENT else SessionRole.PREVIOUS,
+    )
 
-internal fun DebugSession.toEntity(): DebugSessionEntity = DebugSessionEntity(
-    id = id,
-    label = label,
-    startedAtMillis = startedAtMillis,
-    endedAtMillis = endedAtMillis,
-    role = if (role == SessionRole.CURRENT) SESSION_ROLE_CURRENT else SESSION_ROLE_PREVIOUS,
-)
+internal fun DebugSession.toEntity(): DebugSessionEntity =
+    DebugSessionEntity(
+        id = id,
+        label = label,
+        startedAtMillis = startedAtMillis,
+        endedAtMillis = endedAtMillis,
+        role = if (role == SessionRole.CURRENT) SESSION_ROLE_CURRENT else SESSION_ROLE_PREVIOUS,
+    )

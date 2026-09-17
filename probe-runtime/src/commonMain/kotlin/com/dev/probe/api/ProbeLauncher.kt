@@ -12,5 +12,6 @@ internal const val PROBE_START_SCREEN = "probe.start_screen"
  */
 expect object ProbeLauncher {
     fun openHub(ctx: ProbePlatformContext)
+
     fun openInspector(ctx: ProbePlatformContext)
 }

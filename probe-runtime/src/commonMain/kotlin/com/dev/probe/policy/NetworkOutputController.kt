@@ -31,9 +31,10 @@ internal class NetworkOutputController(
     fun scheduleRestore() {
         cancelPendingWork()
         restoreScheduled = true
-        restoreJob = scope.launch {
-            restorePersistedMode()
-        }
+        restoreJob =
+            scope.launch {
+                restorePersistedMode()
+            }
     }
 
     fun cancelPendingWork() {

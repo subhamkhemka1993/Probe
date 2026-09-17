@@ -11,5 +11,7 @@ internal sealed interface BrowserConnectionInfo {
         val simulatorUrl: String?,
     ) : BrowserConnectionInfo
 
-    data class Error(val message: String) : BrowserConnectionInfo
+    data class Error(
+        val message: String,
+    ) : BrowserConnectionInfo
 }

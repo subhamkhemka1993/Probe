@@ -121,16 +121,21 @@ internal fun ProbeApp(services: ProbeServices) {
 }
 
 @Composable
-private fun ClearAppDataResultDialog(result: ClearDataResult, onDismiss: () -> Unit) {
-    val message = when (result) {
-        is ClearDataResult.FullResetTriggered -> "App data cleared. The app will restart shortly."
-        is ClearDataResult.PartialClear -> if (result.clearedItems.isEmpty()) {
-            "Nothing to clear."
-        } else {
-            "Cleared: ${result.clearedItems.joinToString(", ")}"
+private fun ClearAppDataResultDialog(
+    result: ClearDataResult,
+    onDismiss: () -> Unit,
+) {
+    val message =
+        when (result) {
+            is ClearDataResult.FullResetTriggered -> "App data cleared. The app will restart shortly."
+            is ClearDataResult.PartialClear ->
+                if (result.clearedItems.isEmpty()) {
+                    "Nothing to clear."
+                } else {
+                    "Cleared: ${result.clearedItems.joinToString(", ")}"
+                }
+            is ClearDataResult.Failed -> "Couldn't clear app data: ${result.reason}"
         }
-        is ClearDataResult.Failed -> "Couldn't clear app data: ${result.reason}"
-    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("App data") },

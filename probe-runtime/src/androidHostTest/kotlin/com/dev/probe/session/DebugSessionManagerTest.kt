@@ -23,109 +23,114 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 internal class DebugSessionManagerTest {
-
     private fun createDatabase(): ProbeDatabase {
         val context = RuntimeEnvironment.getApplication()
-        return Room.inMemoryDatabaseBuilder<ProbeDatabase>(context = context)
+        return Room
+            .inMemoryDatabaseBuilder<ProbeDatabase>(context = context)
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()
     }
 
-    private fun createManager(database: ProbeDatabase): DebugSessionManager =
-        DebugSessionManager(database.debugSessionDao(), database.networkCallDao())
+    private fun createManager(database: ProbeDatabase): DebugSessionManager = DebugSessionManager(database.debugSessionDao(), database.networkCallDao())
 
     @Test
-    fun ensureInitialSessionCreatesCurrentSessionOnColdStart() = runTest {
-        val database = createDatabase()
-        val manager = createManager(database)
+    fun ensureInitialSessionCreatesCurrentSessionOnColdStart() =
+        runTest {
+            val database = createDatabase()
+            val manager = createManager(database)
 
-        val session = manager.ensureInitialSession()
+            val session = manager.ensureInitialSession()
 
-        assertEquals(SessionRole.CURRENT, session.role)
-        assertEquals(session, manager.activeSession().value)
-        assertEquals(1, database.debugSessionDao().getAll().size)
-    }
-
-    @Test
-    fun ensureInitialSessionIsIdempotentWithinProcess() = runTest {
-        val database = createDatabase()
-        val manager = createManager(database)
-
-        val first = manager.ensureInitialSession()
-        val second = manager.ensureInitialSession()
-
-        assertEquals(first.id, second.id)
-        assertEquals(1, database.debugSessionDao().getAll().size)
-    }
+            assertEquals(SessionRole.CURRENT, session.role)
+            assertEquals(session, manager.activeSession().value)
+            assertEquals(1, database.debugSessionDao().getAll().size)
+        }
 
     @Test
-    fun ensureInitialSessionPromotesPriorProcessCurrentToPrevious() = runTest {
-        val database = createDatabase()
-        val process1 = createManager(database)
-        val s1 = process1.ensureInitialSession()
+    fun ensureInitialSessionIsIdempotentWithinProcess() =
+        runTest {
+            val database = createDatabase()
+            val manager = createManager(database)
 
-        // Simulate process death + relaunch: new manager, same Room DB.
-        val process2 = createManager(database)
-        val s2 = process2.ensureInitialSession()
+            val first = manager.ensureInitialSession()
+            val second = manager.ensureInitialSession()
 
-        assertNotEquals(s1.id, s2.id)
-        assertEquals(SessionRole.CURRENT, s2.role)
-
-        val previous = database.debugSessionDao().getByRole("previous")
-        assertEquals(s1.id, previous?.id)
-        assertTrue((previous?.endedAtMillis ?: 0L) > 0L)
-    }
+            assertEquals(first.id, second.id)
+            assertEquals(1, database.debugSessionDao().getAll().size)
+        }
 
     @Test
-    fun ensureInitialSessionKeepsAtMostTwoAcrossProcessBoots() = runTest {
-        val database = createDatabase()
-        val sessionDao = database.debugSessionDao()
+    fun ensureInitialSessionPromotesPriorProcessCurrentToPrevious() =
+        runTest {
+            val database = createDatabase()
+            val process1 = createManager(database)
+            val s1 = process1.ensureInitialSession()
 
-        createManager(database).ensureInitialSession()
-        createManager(database).ensureInitialSession()
-        val s3 = createManager(database).ensureInitialSession()
+            // Simulate process death + relaunch: new manager, same Room DB.
+            val process2 = createManager(database)
+            val s2 = process2.ensureInitialSession()
 
-        assertEquals(2, sessionDao.getAll().size)
-        assertEquals(SessionRole.CURRENT, s3.role)
-    }
+            assertNotEquals(s1.id, s2.id)
+            assertEquals(SessionRole.CURRENT, s2.role)
 
-    @Test
-    fun ensureInitialSessionPrunesCallsFromEvictedSessions() = runTest {
-        val database = createDatabase()
-        val callDao = database.networkCallDao()
-
-        val process1 = createManager(database)
-        val s1 = process1.ensureInitialSession()
-        callDao.insert(sampleCall(id = "call-1", sessionId = s1.id))
-
-        val process2 = createManager(database)
-        val s2 = process2.ensureInitialSession()
-        callDao.insert(sampleCall(id = "call-2", sessionId = s2.id))
-
-        createManager(database).ensureInitialSession()
-
-        assertNull(callDao.getById("call-1"))
-        assertNotEquals(null, callDao.getById("call-2"))
-    }
+            val previous = database.debugSessionDao().getByRole("previous")
+            assertEquals(s1.id, previous?.id)
+            assertTrue((previous?.endedAtMillis ?: 0L) > 0L)
+        }
 
     @Test
-    fun onClearDataResetsSessionsAndCalls() = runTest {
-        val database = createDatabase()
-        val sessionDao = database.debugSessionDao()
-        val callDao = database.networkCallDao()
-        val manager = createManager(database)
+    fun ensureInitialSessionKeepsAtMostTwoAcrossProcessBoots() =
+        runTest {
+            val database = createDatabase()
+            val sessionDao = database.debugSessionDao()
 
-        val s1 = manager.ensureInitialSession()
-        callDao.insert(sampleCall(id = "call-1", sessionId = s1.id))
-        // Simulate a second process so previous exists before clear.
-        createManager(database).ensureInitialSession()
+            createManager(database).ensureInitialSession()
+            createManager(database).ensureInitialSession()
+            val s3 = createManager(database).ensureInitialSession()
 
-        manager.onClearData()
+            assertEquals(2, sessionDao.getAll().size)
+            assertEquals(SessionRole.CURRENT, s3.role)
+        }
 
-        assertEquals(1, sessionDao.getAll().size)
-        assertEquals(SessionRole.CURRENT, manager.activeSession().value.role)
-        assertNull(callDao.getById("call-1"))
-    }
+    @Test
+    fun ensureInitialSessionPrunesCallsFromEvictedSessions() =
+        runTest {
+            val database = createDatabase()
+            val callDao = database.networkCallDao()
+
+            val process1 = createManager(database)
+            val s1 = process1.ensureInitialSession()
+            callDao.insert(sampleCall(id = "call-1", sessionId = s1.id))
+
+            val process2 = createManager(database)
+            val s2 = process2.ensureInitialSession()
+            callDao.insert(sampleCall(id = "call-2", sessionId = s2.id))
+
+            createManager(database).ensureInitialSession()
+
+            assertNull(callDao.getById("call-1"))
+            assertNotEquals(null, callDao.getById("call-2"))
+        }
+
+    @Test
+    fun onClearDataResetsSessionsAndCalls() =
+        runTest {
+            val database = createDatabase()
+            val sessionDao = database.debugSessionDao()
+            val callDao = database.networkCallDao()
+            val manager = createManager(database)
+
+            val s1 = manager.ensureInitialSession()
+            callDao.insert(sampleCall(id = "call-1", sessionId = s1.id))
+            // Simulate a second process so previous exists before clear.
+            createManager(database).ensureInitialSession()
+
+            manager.onClearData()
+
+            assertEquals(1, sessionDao.getAll().size)
+            assertEquals(SessionRole.CURRENT, manager.activeSession().value.role)
+            assertNull(callDao.getById("call-1"))
+        }
 
     private fun sampleCall(
         id: String,
@@ -160,45 +165,46 @@ internal class DebugSessionManagerTest {
      * rows where the second one's cleanup deletes the first's.
      */
     @Test
-    fun ensureInitialSessionIsSingleFlightUnderConcurrentCallers() = runTest {
-        val delegateSessionDao = InMemoryDebugSessionDao()
-        delegateSessionDao.insert(
-            DebugSessionEntity(
-                id = "prior-session",
-                label = "Prior",
-                startedAtMillis = 0L,
-                endedAtMillis = null,
-                role = SESSION_ROLE_CURRENT,
-            ),
-        )
-        val gate = CompletableDeferred<Unit>()
-        val gatedSessionDao = GatedGetByRoleDebugSessionDao(delegateSessionDao, gate)
-        val callDao = InMemoryNetworkCallDao()
-        val manager = DebugSessionManager(gatedSessionDao, callDao)
+    fun ensureInitialSessionIsSingleFlightUnderConcurrentCallers() =
+        runTest {
+            val delegateSessionDao = InMemoryDebugSessionDao()
+            delegateSessionDao.insert(
+                DebugSessionEntity(
+                    id = "prior-session",
+                    label = "Prior",
+                    startedAtMillis = 0L,
+                    endedAtMillis = null,
+                    role = SESSION_ROLE_CURRENT,
+                ),
+            )
+            val gate = CompletableDeferred<Unit>()
+            val gatedSessionDao = GatedGetByRoleDebugSessionDao(delegateSessionDao, gate)
+            val callDao = InMemoryNetworkCallDao()
+            val manager = DebugSessionManager(gatedSessionDao, callDao)
 
-        val first = async { manager.ensureInitialSession() }
-        val second = async { manager.ensureInitialSession() }
-        runCurrent()
+            val first = async { manager.ensureInitialSession() }
+            val second = async { manager.ensureInitialSession() }
+            runCurrent()
 
-        gate.complete(Unit)
-        advanceUntilIdle()
+            gate.complete(Unit)
+            advanceUntilIdle()
 
-        val s1 = first.await()
-        val s2 = second.await()
+            val s1 = first.await()
+            val s2 = second.await()
 
-        assertEquals(s1.id, s2.id, "concurrent callers must converge on the same bootstrapped session")
-        assertEquals(
-            1,
-            gatedSessionDao.currentInsertCount,
-            "concurrent bootstraps must not create two current sessions",
-        )
+            assertEquals(s1.id, s2.id, "concurrent callers must converge on the same bootstrapped session")
+            assertEquals(
+                1,
+                gatedSessionDao.currentInsertCount,
+                "concurrent bootstraps must not create two current sessions",
+            )
 
-        val activeId = manager.activeSession().value.id
-        assertTrue(
-            delegateSessionDao.getAll().any { it.id == activeId },
-            "the active session must not have been deleted by a concurrent bootstrap's cleanup",
-        )
-    }
+            val activeId = manager.activeSession().value.id
+            assertTrue(
+                delegateSessionDao.getAll().any { it.id == activeId },
+                "the active session must not have been deleted by a concurrent bootstrap's cleanup",
+            )
+        }
 }
 
 /**

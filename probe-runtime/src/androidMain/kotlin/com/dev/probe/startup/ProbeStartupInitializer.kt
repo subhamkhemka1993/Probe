@@ -2,10 +2,10 @@ package com.dev.probe.startup
 
 import android.content.Context
 import androidx.startup.Initializer
+import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbeInstaller
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
-import com.dev.probe.api.ProbeConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,7 +21,10 @@ class ProbeStartupInitializer : Initializer<Unit> {
     override fun create(context: Context) {
         ProbeInstaller.register(
             object : ProbeInstaller.Hook {
-                override fun install(config: ProbeConfig, platform: ProbePlatformContext) {
+                override fun install(
+                    config: ProbeConfig,
+                    platform: ProbePlatformContext,
+                ) {
                     ProbeRuntime.initialize(
                         config = config,
                         platform = platform,

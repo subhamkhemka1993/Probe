@@ -19,14 +19,19 @@ import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 import platform.UIKit.popoverPresentationController
 
-internal actual fun shareFile(fileName: String, content: String, mimeType: String) {
+internal actual fun shareFile(
+    fileName: String,
+    content: String,
+    mimeType: String,
+) {
     val presenter = findTopViewControllerForShare() ?: return
     val fileUrl = writeExportFile(fileName, content) ?: return
 
-    val shareController = UIActivityViewController(
-        activityItems = listOf(fileUrl),
-        applicationActivities = null,
-    )
+    val shareController =
+        UIActivityViewController(
+            activityItems = listOf(fileUrl),
+            applicationActivities = null,
+        )
     shareController.popoverPresentationController?.let { popover ->
         popover.sourceView = presenter.view
         popover.sourceRect = presenter.view.bounds
@@ -38,7 +43,10 @@ internal actual fun shareFile(fileName: String, content: String, mimeType: Strin
     )
 }
 
-private fun writeExportFile(fileName: String, content: String): NSURL? {
+private fun writeExportFile(
+    fileName: String,
+    content: String,
+): NSURL? {
     val exportDirPath = NSTemporaryDirectory() + "probe_exports"
     val fileManager = NSFileManager.defaultManager
     if (!fileManager.fileExistsAtPath(exportDirPath)) {

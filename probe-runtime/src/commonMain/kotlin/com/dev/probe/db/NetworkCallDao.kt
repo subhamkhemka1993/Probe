@@ -26,7 +26,11 @@ internal interface NetworkCallDao {
         LIMIT :limit
         """,
     )
-    fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>>
+    fun observeSearch(
+        sessionId: String,
+        query: String,
+        limit: Int,
+    ): Flow<List<NetworkCallEntity>>
 
     @Query("DELETE FROM network_calls")
     suspend fun clearAll()
@@ -46,5 +50,8 @@ internal interface NetworkCallDao {
         )
         """,
     )
-    suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int)
+    suspend fun enforceCountCapForSession(
+        sessionId: String,
+        maxEntries: Int,
+    )
 }
