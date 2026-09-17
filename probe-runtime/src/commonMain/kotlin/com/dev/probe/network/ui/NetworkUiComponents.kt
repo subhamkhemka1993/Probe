@@ -199,7 +199,7 @@ private fun NetworkHeadersTableEmptyPreview() {
 }
 
 @Composable
-internal fun NetworkBodyBlock(body: String?, contentType: String? = null, modifier: Modifier = Modifier, onCopy: (() -> Unit)? = null) {
+internal fun NetworkBodyBlock(body: String?, modifier: Modifier = Modifier, contentType: String? = null, onCopy: (() -> Unit)? = null) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     var formattedBody by remember(body, contentType) {

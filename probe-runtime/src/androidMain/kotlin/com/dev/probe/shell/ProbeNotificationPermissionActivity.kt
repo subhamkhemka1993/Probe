@@ -1,6 +1,7 @@
 package com.dev.probe.shell
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -35,6 +36,9 @@ class ProbeNotificationPermissionActivity : ComponentActivity() {
         requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
+    // Only called once onCreate has already confirmed SDK_INT >= TIRAMISU; checkSelfPermission
+    // itself is safe to call with this constant on any API level regardless.
+    @SuppressLint("InlinedApi")
     private fun hasPermission(): Boolean = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     private fun postPendingNotification() {

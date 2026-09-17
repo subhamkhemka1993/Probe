@@ -39,8 +39,11 @@ kotlin {
             sarifReport = true
             checkDependencies = true
             disable += "GradleDependency"
+            // Same reasoning as GradleDependency above: an advisory that a newer
+            // Gradle/AGP is available, not a defect — bumping is a deliberate,
+            // separately-verified decision, not something to nag about here.
+            disable += "AndroidGradlePluginVersion"
             disable += "RestrictedApi"
-            baseline = file("lint-baseline.xml")
         }
     }
 

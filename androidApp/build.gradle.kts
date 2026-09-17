@@ -15,7 +15,7 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
 
-    implementation(libs.compose.uiToolingPreview)
+    implementation(libs.ui.tooling.preview)
     debugImplementation(libs.compose.uiTooling)
 }
 
@@ -65,11 +65,12 @@ android {
         sarifReport = true
         checkDependencies = true
         disable += "GradleDependency"
+        // Same reasoning as GradleDependency above: an advisory that a newer
+        // Gradle/AGP is available, not a defect — bumping is a deliberate,
+        // separately-verified decision, not something to nag about here.
+        disable += "AndroidGradlePluginVersion"
         // Room's own generated Dao_Impl classes call Room-internal @RestrictTo
         // APIs; lint flags that cross-module even though it's Room's own code.
         disable += "RestrictedApi"
-        // checkDependencies also surfaces probe-runtime's own pre-existing
-        // findings here; grandfathered below.
-        baseline = file("lint-baseline.xml")
     }
 }

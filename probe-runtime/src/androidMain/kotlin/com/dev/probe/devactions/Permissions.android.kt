@@ -1,6 +1,7 @@
 package com.dev.probe.devactions
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -69,6 +70,9 @@ internal actual class PermissionDevActionsController internal constructor(
             ?.contains(manifestPermission)
     }.getOrNull() ?: false
 
+    // POST_NOTIFICATIONS is just a string constant here, not an API call gated on API 33 —
+    // safe to reference and compare on any minSdk.
+    @SuppressLint("InlinedApi")
     private fun String.toManifestPermission(): String? = when (this) {
         KnownPermission.Notifications.id -> Manifest.permission.POST_NOTIFICATIONS
         KnownPermission.Camera.id -> Manifest.permission.CAMERA

@@ -49,27 +49,28 @@ kotlin {
             sarifReport = true
             checkDependencies = true
             disable += "GradleDependency"
+            // Same reasoning as GradleDependency above: an advisory that a newer
+            // Gradle/AGP is available, not a defect — bumping is a deliberate,
+            // separately-verified decision, not something to nag about here.
+            disable += "AndroidGradlePluginVersion"
             // Room's own generated Dao_Impl classes call Room-internal @RestrictTo
             // APIs; lint flags that cross-module even though it's Room's own code.
             disable += "RestrictedApi"
-            // checkDependencies also surfaces probe-runtime's own pre-existing
-            // findings here; grandfathered in probe-runtime/lint-baseline.xml.
-            baseline = file("lint-baseline.xml")
         }
     }
 
     sourceSets {
         androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.compose.uiTooling)
         }
         commonMain.dependencies {
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.material3)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.components.resources)
-            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.ui)
+            implementation(libs.components.resources)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(projects.probeApi)

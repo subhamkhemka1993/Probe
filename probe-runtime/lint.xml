@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!--
+    ProbePlatformHolder's static field only ever holds a ProbePlatformContext, whose Android
+    actual constructor (probe-api/src/androidMain/.../ProbePlatformContext.android.kt) always
+    stores context.applicationContext, never an Activity — this is commonMain code, so the
+    per-line @SuppressLint annotation isn't available here.
+    -->
+    <issue id="StaticFieldLeak">
+        <ignore path="src/commonMain/kotlin/com/dev/probe/internal/ProbePlatformHolder.kt" />
+    </issue>
+</lint>
