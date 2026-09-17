@@ -6,13 +6,13 @@
 
     <application>
         <activity
-            android:name=".shell.ProbeActivity"
+            android:name="com.dev.probe.shell.ProbeActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Material.Light.NoActionBar" />
 
         <activity-alias
-            android:name=".shell.ProbeLauncherAlias"
-            android:targetActivity=".shell.ProbeActivity"
+            android:name="com.dev.probe.shell.ProbeLauncherAlias"
+            android:targetActivity="com.dev.probe.shell.ProbeActivity"
             android:enabled="true"
             android:exported="true"
             android:icon="@drawable/probe_icon"
@@ -24,14 +24,14 @@
         </activity-alias>
 
         <activity
-            android:name=".shell.ProbeNotificationPermissionActivity"
+            android:name="com.dev.probe.shell.ProbeNotificationPermissionActivity"
             android:exported="false"
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <provider
-            android:name=".platform.ProbeFileProvider"
+            android:name="com.dev.probe.platform.ProbeFileProvider"
             android:authorities="${applicationId}.probe.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
