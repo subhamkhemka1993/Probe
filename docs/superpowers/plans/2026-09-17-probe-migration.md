@@ -193,15 +193,18 @@ DEST="$2"
 rm -rf "$DEST"
 cp -R "$SRC" "$DEST"
 
+# Stale build output from the source repo's own last build never travels with the port.
+rm -rf "$DEST/build"
+
 # zebpay-internal planning docs never travel with the port.
 rm -rf "$DEST/docs"
 
 # Relocate every "kotlin/com/zebpay/devtools" package directory to "kotlin/com/dev/probe",
 # preserving everything nested underneath (api/, browser/, db/, ui/, etc.) in one move.
 find "$DEST" -type d -path '*/kotlin/com/zebpay' | while read -r zebpay_dir; do
-  kotlin_root=$(dirname "$zebpay_dir")
-  mkdir -p "$kotlin_root/com/dev"
-  mv "$zebpay_dir/devtools" "$kotlin_root/com/dev/probe"
+  com_dir=$(dirname "$zebpay_dir")
+  mkdir -p "$com_dir/dev"
+  mv "$zebpay_dir/devtools" "$com_dir/dev/probe"
   rm -rf "$zebpay_dir"
 done
 
@@ -228,7 +231,9 @@ find "$DEST" -type f \( -name '*.kt' -o -name '*.kts' -o -name '*.xml' -o -name 
     -e 's/ZDebug/Probe/g' \
     -e 's/ZTool/Probe/g' \
     -e 's/zdebug_/probe_/g' \
-    -e 's/zdebugApi/probeApi/g'
+    -e 's/zdebugApi/probeApi/g' \
+    -e 's/zdebug-api/probe-api/g' \
+    -e 's/zdevtools/probe-runtime/g'
 ```
 
 ```bash
@@ -264,8 +269,8 @@ include(":probe-api")
 Run: `./gradlew :probe-api:compileAndroidMain`
 Expected: `BUILD SUCCESSFUL`
 
-Run: `./gradlew test`
-Expected: `BUILD SUCCESSFUL` — includes the ported `ProbeHubTest` and `ProbeInstallerTest` (renamed from `ZDebugHubTest`/`ZDebugInstallerTest`), passing unmodified in behavior.
+Run: `./gradlew :probe-api:testAndroidHostTest`
+Expected: `BUILD SUCCESSFUL` — includes the ported `ProbeHubTest` and `ProbeInstallerTest` (renamed from `ZDebugHubTest`/`ZDebugInstallerTest`), plus the `commonTest` classes, passing unmodified in behavior. (The root `test` lifecycle task does not aggregate this AGP-KMP-library module's host tests — use the module-qualified task.)
 
 - [ ] **Step 6: Commit**
 
