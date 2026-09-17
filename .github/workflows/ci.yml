@@ -13,7 +13,19 @@ jobs:
         with:
           fetch-depth: 0
       - name: Check docs/guide is in sync with source it documents
-        run: scripts/check-docs-freshness.sh origin/${{ github.base_ref || 'main' }} HEAD
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+          else
+            # Direct push to main (this repo has no PR workflow): diff against the commit
+            # that was HEAD before this push, not against origin/main — which by the time
+            # this job runs already points at the same commit as HEAD, making the diff empty.
+            BASE="${{ github.event.before }}"
+            if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+              BASE="HEAD~1"
+            fi
+          fi
+          scripts/check-docs-freshness.sh "$BASE" HEAD
 
   build:
     runs-on: macos-latest

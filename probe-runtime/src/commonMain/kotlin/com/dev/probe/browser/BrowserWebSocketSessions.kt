@@ -8,6 +8,7 @@ import io.ktor.websocket.send
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -53,11 +54,16 @@ internal class BrowserWebSocketSessions(
 
     suspend fun closeAll() {
         val sessionsToClose = drain()
-        scope.launch {
+        // Awaited (not fire-and-forget on `scope`): the caller (NetworkBrowserServer.stop())
+        // stops the CIO engine right after this returns, so close frames must actually be sent
+        // before then — otherwise clients see an abrupt reset instead of a graceful close.
+        coroutineScope {
             sessionsToClose.forEach { session ->
-                runCatching {
-                    withTimeout(CLOSE_TIMEOUT_MILLIS) {
-                        session.close(CloseReason(CloseReason.Codes.NORMAL, "server stopped"))
+                launch {
+                    runCatching {
+                        withTimeout(CLOSE_TIMEOUT_MILLIS) {
+                            session.close(CloseReason(CloseReason.Codes.NORMAL, "server stopped"))
+                        }
                     }
                 }
             }
