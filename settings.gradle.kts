@@ -1,3 +1,5 @@
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "Probe"
 
 pluginManagement {
@@ -30,3 +32,4 @@ dependencyResolutionManagement {
 include(":androidApp")
 include(":shared")
 include(":probe-api")
+include(":probe-runtime")

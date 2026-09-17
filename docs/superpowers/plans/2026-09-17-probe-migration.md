@@ -213,6 +213,11 @@ if [ -d "$DEST/schemas/com.zebpay.devtools.db.ZDebugDatabase" ]; then
   mv "$DEST/schemas/com.zebpay.devtools.db.ZDebugDatabase" "$DEST/schemas/com.dev.probe.db.ProbeDatabase"
 fi
 
+# Special-case: ZDebugConfig (zdevtools-internal capture limits) collides with ZToolConfig
+# (zdebug-api's public host config) once both are generically renamed to Probe*Config — rename
+# this one file before the generic filename pass so it doesn't land on the same name.
+find "$DEST" -type f -name 'ZDebugConfig.kt' -exec sh -c 'mv "$1" "$(dirname "$1")/ProbeCaptureLimits.kt"' _ {} \;
+
 # Rename Z-prefixed / zdebug_-prefixed file names (contents are fixed by the sed pass below).
 find "$DEST" -type f \( -name 'ZDebug*' -o -name 'ZTool*' -o -name 'zdebug_*' \) | while read -r f; do
   dir=$(dirname "$f")
@@ -226,14 +231,18 @@ done
 # Content substitution across every text file the port touches.
 find "$DEST" -type f \( -name '*.kt' -o -name '*.kts' -o -name '*.xml' -o -name '*.md' -o -name '*.js' -o -name '*.html' -o -name '*.css' -o -name '*.json' \) -print0 \
   | xargs -0 sed -i '' \
+    -e 's/ZDebugConfig/ProbeCaptureLimits/g' \
     -e 's/com\.zebpay\.devtools/com.dev.probe/g' \
     -e 's/ZDEBUG_/PROBE_/g' \
     -e 's/ZDebug/Probe/g' \
     -e 's/ZTool/Probe/g' \
+    -e 's/zDebug/probe/g' \
+    -e 's/zTool/probe/g' \
     -e 's/zdebug_/probe_/g' \
     -e 's/zdebugApi/probeApi/g' \
     -e 's/zdebug-api/probe-api/g' \
-    -e 's/zdevtools/probe-runtime/g'
+    -e 's/zdevtools/probe-runtime/g' \
+    -e 's/zdebug/probe/g'
 ```
 
 ```bash
@@ -307,10 +316,16 @@ cat probe-runtime/src/androidMain/AndroidManifest.xml
 
 Expected: `clean` printed. The manifest's App Startup `<meta-data>` entry now reads `android:name="com.dev.probe.startup.ProbeStartupInitializer"`; the launcher `activity-alias` now points at `.shell.ProbeActivity` with `android:icon="@drawable/probe_icon"` and `android:label="Probe"`; the file provider now reads `.platform.ProbeFileProvider` / `@xml/probe_file_paths` / authority `${applicationId}.probe.fileprovider`.
 
-- [ ] **Step 3: Add the module to the build**
+- [ ] **Step 3: Add the module to the build, and enable type-safe project accessors**
+
+`probe-runtime/build.gradle.kts` references `projects.probeApi` (ported verbatim from `zdevtools`'s `projects.zdebugApi` — renamed by the script). That accessor only exists if type-safe project accessors are enabled, which the wizard scaffold never turned on (`zebpay_multiplatform` does, in its own `settings.gradle.kts`).
 
 ```kotlin
 // settings.gradle.kts
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+rootProject.name = "Probe"
+// ...
 include(":androidApp")
 include(":shared")
 include(":probe-api")
@@ -322,8 +337,8 @@ include(":probe-runtime")
 Run: `./gradlew :probe-runtime:compileAndroidMain`
 Expected: `BUILD SUCCESSFUL` — this exercises the full plugin stack (Ktor server/client, Room+KSP, moko-permission, Compose MP, App Startup) resolving against Task 1's catalog.
 
-Run: `./gradlew test`
-Expected: `BUILD SUCCESSFUL` — the full ported `androidHostTest`/`commonTest` suite (network capture, browser server, session manager, theme, export, etc.) passes unmodified in behavior.
+Run: `./gradlew :probe-runtime:testAndroidHostTest`
+Expected: `BUILD SUCCESSFUL` — the full ported `androidHostTest`/`commonTest` suite (network capture, browser server, session manager, theme, export, etc.) passes unmodified in behavior (127 tests across 30 classes).
 
 - [ ] **Step 5: Commit**
 
@@ -555,8 +570,8 @@ git commit -m "feat: install probe-runtime from the ios sample app"
 
 - [ ] **Step 1: Full test suite**
 
-Run: `./gradlew test`
-Expected: `BUILD SUCCESSFUL`
+Run: `./gradlew :probe-api:testAndroidHostTest :probe-runtime:testAndroidHostTest`
+Expected: `BUILD SUCCESSFUL` (the root `test` lifecycle task does not aggregate these AGP-KMP-library modules' host tests — see Tasks 2–3).
 
 - [ ] **Step 2: Full compile across both platforms' relevant targets**
 

@@ -30,6 +30,11 @@ if [ -d "$DEST/schemas/com.zebpay.devtools.db.ZDebugDatabase" ]; then
   mv "$DEST/schemas/com.zebpay.devtools.db.ZDebugDatabase" "$DEST/schemas/com.dev.probe.db.ProbeDatabase"
 fi
 
+# Special-case: ZDebugConfig (zdevtools-internal capture limits) collides with ZToolConfig
+# (zdebug-api's public host config) once both are generically renamed to Probe*Config — rename
+# this one file before the generic filename pass so it doesn't land on the same name.
+find "$DEST" -type f -name 'ZDebugConfig.kt' -exec sh -c 'mv "$1" "$(dirname "$1")/ProbeCaptureLimits.kt"' _ {} \;
+
 # Rename Z-prefixed / zdebug_-prefixed file names (contents are fixed by the sed pass below).
 find "$DEST" -type f \( -name 'ZDebug*' -o -name 'ZTool*' -o -name 'zdebug_*' \) | while read -r f; do
   dir=$(dirname "$f")
@@ -43,11 +48,15 @@ done
 # Content substitution across every text file the port touches.
 find "$DEST" -type f \( -name '*.kt' -o -name '*.kts' -o -name '*.xml' -o -name '*.md' -o -name '*.js' -o -name '*.html' -o -name '*.css' -o -name '*.json' \) -print0 \
   | xargs -0 sed -i '' \
+    -e 's/ZDebugConfig/ProbeCaptureLimits/g' \
     -e 's/com\.zebpay\.devtools/com.dev.probe/g' \
     -e 's/ZDEBUG_/PROBE_/g' \
     -e 's/ZDebug/Probe/g' \
     -e 's/ZTool/Probe/g' \
+    -e 's/zDebug/probe/g' \
+    -e 's/zTool/probe/g' \
     -e 's/zdebug_/probe_/g' \
     -e 's/zdebugApi/probeApi/g' \
     -e 's/zdebug-api/probe-api/g' \
-    -e 's/zdevtools/probe-runtime/g'
+    -e 's/zdevtools/probe-runtime/g' \
+    -e 's/zdebug/probe/g'
