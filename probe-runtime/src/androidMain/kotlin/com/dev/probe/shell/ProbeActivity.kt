@@ -2,6 +2,7 @@ package com.dev.probe.shell
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
 import com.dev.probe.Probe
@@ -26,6 +27,9 @@ class ProbeActivity : ComponentActivity() {
         if (!ProbeRuntime.isEnabled()) {
             finish()
             return
+        }
+        onBackPressedDispatcher.addCallback(this) {
+            if (!Probe.navigateBack()) finish()
         }
         val screen =
             intent
@@ -58,10 +62,5 @@ class ProbeActivity : ComponentActivity() {
             }
             ProbeApp(services = services)
         }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (!Probe.navigateBack()) super.onBackPressed()
     }
 }

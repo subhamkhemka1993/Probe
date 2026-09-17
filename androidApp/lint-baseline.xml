@@ -2,17 +2,6 @@
 <issues format="6" by="lint 9.2.1" type="baseline" client="gradle" dependencies="true" name="AGP (9.2.1)" variant="all" version="9.2.1">
 
     <issue
-        id="GestureBackNavigation"
-        message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
-        errorLine1="    override fun onBackPressed() {"
-        errorLine2="                 ~~~~~~~~~~~~~">
-        <location
-            file="src/androidMain/kotlin/com/dev/probe/shell/ProbeActivity.kt"
-            line="64"
-            column="18"/>
-    </issue>
-
-    <issue
         id="InlinedApi"
         message="Field requires API level 33 (current min is 28): `android.Manifest.permission#POST_NOTIFICATIONS`"
         errorLine1="        KnownPermission.Notifications.id -> Manifest.permission.POST_NOTIFICATIONS"
