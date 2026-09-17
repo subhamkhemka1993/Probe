@@ -6,14 +6,23 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.dev.probe.api.ProbeConfig
+import com.dev.probe.api.ProbeHub
+import com.dev.probe.api.ProbeInstaller
+import com.dev.probe.api.ProbePlatformContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        ProbeInstaller.install(
+            config = ProbeConfig(isEnabled = { true }),
+            platform = ProbePlatformContext(this),
+        )
+
         setContent {
-            App()
+            App(onOpenHub = { ProbeHub.openHub(ProbePlatformContext(this)) })
         }
     }
 }
@@ -21,5 +30,5 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun AppAndroidPreview() {
-    App()
+    App(onOpenHub = {})
 }

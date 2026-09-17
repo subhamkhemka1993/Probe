@@ -52,6 +52,7 @@ find "$DEST" -type f \( -name '*.kt' -o -name '*.kts' -o -name '*.xml' -o -name 
   | xargs -0 sed -i '' \
     -e 's/ZDebugConfig/ProbeCaptureLimits/g' \
     -e 's/com\.zebpay\.devtools/com.dev.probe/g' \
+    -e 's/namespace = "com\.dev\.probe"/namespace = "com.dev.probe.runtime"/g' \
     -e 's/ZDEBUG_/PROBE_/g' \
     -e 's/ZDebug/Probe/g' \
     -e 's/ZTool/Probe/g' \
