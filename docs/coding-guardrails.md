@@ -68,6 +68,27 @@ If a finding is genuinely out of scope for the change at hand, baseline it *and*
    advisories, not defects) — and add the issue ID to `scripts/lint-disabled-checks.conf` with a
    real reason in the same commit; the guardrail script fails the build otherwise.
 
+## No AI-authorship attribution
+
+Strict, non-negotiable: no commit message, PR/push description, or tracked file's content may
+claim or disclose AI-tool authorship — of this project's code, or of the automation that
+enforces this rule. Patterns are in
+[`scripts/ai-attribution-patterns.conf`](../scripts/ai-attribution-patterns.conf) and checked by
+[`scripts/check-no-ai-attribution.sh`](../scripts/check-no-ai-attribution.sh), run:
+- on every commit message (`.githooks/commit-msg`),
+- on every staged file's added lines (`.githooks/pre-commit`),
+- on every commit about to be pushed and the full tree (`.githooks/pre-push` — this re-checks
+  even a commit made with `--no-verify`, so skipping the earlier hooks doesn't get it through the
+  last local gate),
+- and again server-side (`ai-attribution` CI job), which is the one gate a local bypass can't
+  reach.
+
+Unlike this repo's other checks, there is **no sanctioned bypass env var** for this one — the
+only way past it locally is git's own `--no-verify`, and CI still catches that. `CLAUDE.md` and
+`.claude/**/SKILL.md` are exempted from the file-content scan, since they legitimately name the
+coding agent they configure — that's tool configuration, not an authorship claim, and the
+patterns file's own header explains why.
+
 ## Branch naming
 
 [`scripts/check-branch-name.sh`](../scripts/check-branch-name.sh) enforces the

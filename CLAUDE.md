@@ -48,6 +48,10 @@ more detail — invoke it whenever you touch `:probe-api`/`:probe-runtime` sourc
 - Conventional Commits, enforced by `.githooks/commit-msg` — see `docs/git-guide.md`.
 - Feature branches follow `<type>/<slug>`, enforced by `scripts/check-branch-name.sh` — see
   `docs/git-guide.md#branching`.
+- **Never disclose or claim AI-tool authorship** in a commit message, PR/push description, or any
+  tracked file — no attribution trailers, no "Generated with ..." banners, for this tool or any
+  other. This is strict and non-negotiable: `scripts/check-no-ai-attribution.sh` enforces it in
+  every hook and in CI, with no sanctioned bypass — see `docs/coding-guardrails.md`.
 - Most new capability code belongs in `commonMain` with `expect`/`actual` only for the genuinely
   platform-specific edge, to avoid widening the iOS/Android feature gap further than the
   platforms themselves force (see `docs/guide/development.md`).

@@ -6,6 +6,34 @@ on:
   pull_request:
 
 jobs:
+  ai-attribution:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: No AI-authorship attribution in tracked files
+        run: scripts/check-no-ai-attribution.sh --tree
+      - name: No AI-authorship attribution in the commits being pushed/merged
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="${{ github.event.before }}"
+            if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+              BASE="HEAD~1"
+            fi
+          fi
+          FAIL=0
+          for commit in $(git rev-list "$BASE..HEAD"); do
+            git log -1 --format=%B "$commit" > /tmp/msg.txt
+            if ! scripts/check-no-ai-attribution.sh --message /tmp/msg.txt; then
+              echo "commit $commit failed the AI-attribution check (see above)" >&2
+              FAIL=1
+            fi
+          done
+          exit "$FAIL"
+
   guardrails:
     runs-on: macos-latest
     steps:

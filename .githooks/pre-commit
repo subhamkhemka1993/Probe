@@ -8,6 +8,12 @@ if ! scripts/check-branch-name.sh; then
   exit 1
 fi
 
+# Non-negotiable: no sanctioned bypass (no SKIP_* var) for AI-authorship attribution.
+if ! scripts/check-no-ai-attribution.sh --staged; then
+  echo "pre-commit: blocked by AI-attribution check (see above)." >&2
+  exit 1
+fi
+
 if ! scripts/check-lint-guardrails.sh; then
   echo "pre-commit: blocked by lint guardrails check (see above)." >&2
   exit 1

@@ -55,9 +55,9 @@ unlike `.git/hooks/`):
 
 | Hook | What it does | Bypass |
 |---|---|---|
-| `pre-commit` | Checks branch name and lint-suppression guardrails; runs `spotlessApply` on staged `.kt`/`.kts` files and re-stages them; runs the docs-freshness check against staged changes | `SKIP_DOCS_CHECK=1 git commit`, or `git commit --no-verify` for everything else |
-| `commit-msg` | Enforces the Conventional Commits format above | `git commit --no-verify` |
-| `pre-push` | Runs `spotlessCheck` (fast; full `lint`/tests run in CI, not here) | `SKIP_PREPUSH=1 git push` |
+| `pre-commit` | Checks branch name, lint-suppression guardrails, and AI-attribution in staged additions; runs `spotlessApply` on staged `.kt`/`.kts` files and re-stages them; runs the docs-freshness check against staged changes | `SKIP_DOCS_CHECK=1 git commit` for docs-freshness only; `git commit --no-verify` skips the whole hook (AI-attribution is still re-checked by `pre-push` and CI) |
+| `commit-msg` | Enforces the Conventional Commits format above, and the AI-attribution check on the message text | `git commit --no-verify` (AI-attribution still re-checked by `pre-push`/CI) |
+| `pre-push` | Re-checks AI-attribution on every commit being pushed and the full tree (no bypass — runs even with `SKIP_PREPUSH=1`); then runs `spotlessCheck` (fast; full `lint`/tests run in CI, not here) | `SKIP_PREPUSH=1 git push` skips only `spotlessCheck` |
 
 `pre-commit`'s branch-name and lint-guardrail checks are the same
 [`scripts/check-branch-name.sh`](../scripts/check-branch-name.sh) /

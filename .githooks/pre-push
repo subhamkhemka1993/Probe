@@ -1,12 +1,43 @@
 #!/usr/bin/env bash
-# Light gate before push: format check only (full lint + tests run in CI — see
-# .github/workflows/ci.yml). See docs/git-guide.md#hooks.
+# Guardrails before push. See docs/git-guide.md#hooks.
 set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
+ZERO_SHA="0000000000000000000000000000000000000000"
+
+# Non-negotiable: no sanctioned bypass for AI-authorship attribution. This re-checks every commit
+# about to be pushed (not just the ones that went through commit-msg locally) and the full tree,
+# so a commit made with --no-verify still can't slip past this local gate — read from pre-push's
+# stdin protocol ("<local ref> <local sha> <remote ref> <remote sha>", one line per updated ref).
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ -z "$local_sha" ] && continue
+  [ "$local_sha" = "$ZERO_SHA" ] && continue # deleting a ref: nothing to check
+
+  if [ "$remote_sha" = "$ZERO_SHA" ]; then
+    RANGE_COMMITS="$(git rev-list "$local_sha" --not --remotes || true)"
+  else
+    RANGE_COMMITS="$(git rev-list "$remote_sha..$local_sha" || true)"
+  fi
+
+  for commit in $RANGE_COMMITS; do
+    MSG_FILE="$(mktemp)"
+    git log -1 --format=%B "$commit" > "$MSG_FILE"
+    if ! scripts/check-no-ai-attribution.sh --message "$MSG_FILE"; then
+      echo "pre-push: blocked — commit $commit has AI-attribution text (see above)." >&2
+      rm -f "$MSG_FILE"
+      exit 1
+    fi
+    rm -f "$MSG_FILE"
+  done
+done
+
+if ! scripts/check-no-ai-attribution.sh --tree; then
+  echo "pre-push: blocked by AI-attribution check on the working tree (see above)." >&2
+  exit 1
+fi
 
 if [ "${SKIP_PREPUSH:-0}" = "1" ]; then
-  echo "pre-push: SKIP_PREPUSH=1, skipping."
+  echo "pre-push: SKIP_PREPUSH=1, skipping spotlessCheck."
   exit 0
 fi
 

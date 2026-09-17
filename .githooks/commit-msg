@@ -3,10 +3,18 @@
 # (e.g. "fix(probe-runtime): ...", "build: ...", "docs: ..."). See docs/git-guide.md#commit-messages.
 set -euo pipefail
 
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 MSG_FILE="$1"
 SUBJECT="$(head -n1 "$MSG_FILE")"
 
-# Merge commits and fixups are exempt.
+# Non-negotiable: no AI-authorship attribution in a commit message, ever. No SKIP_* env var —
+# unlike the other checks in this repo, there is deliberately no sanctioned bypass for this one
+# short of git's own --no-verify (which CI's ai-attribution job then still catches).
+if ! "$REPO_ROOT/scripts/check-no-ai-attribution.sh" --message "$MSG_FILE"; then
+  exit 1
+fi
+
+# Merge commits and fixups are exempt from the Conventional Commits format check below.
 case "$SUBJECT" in
   "Merge "*|"fixup!"*|"squash!"*) exit 0 ;;
 esac
