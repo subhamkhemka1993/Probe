@@ -437,6 +437,7 @@ package com.dev.probe
 
 import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbePlatformContext
+import com.dev.probe.startup.installProbeTools
 
 fun installProbeSample() {
     installProbeTools(
@@ -448,7 +449,7 @@ fun installProbeSample() {
 
 - [ ] **Step 5: Verify**
 
-Run: `./gradlew :shared:compileKotlinIosSimulatorArm64 :shared:compileDebugKotlinAndroid`
+Run: `./gradlew :shared:compileKotlinIosSimulatorArm64 :shared:compileAndroidMain`
 Expected: `BUILD SUCCESSFUL`
 
 - [ ] **Step 6: Commit**
@@ -577,7 +578,7 @@ Expected: `BUILD SUCCESSFUL` (the root `test` lifecycle task does not aggregate 
 
 - [ ] **Step 2: Full compile across both platforms' relevant targets**
 
-Run: `./gradlew :probe-api:compileAndroidMain :probe-runtime:compileAndroidMain :shared:compileDebugKotlinAndroid :androidApp:assembleDebug`
+Run: `./gradlew :probe-api:compileAndroidMain :probe-runtime:compileAndroidMain :shared:compileAndroidMain :androidApp:assembleDebug`
 Expected: `BUILD SUCCESSFUL`
 
 - [ ] **Step 3: Residue check across the whole project**
