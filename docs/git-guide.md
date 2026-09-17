@@ -27,6 +27,9 @@ Keep `<slug>` short and kebab-case. Rebase onto `main` before merging rather tha
 into your branch, to keep history linear; merge (don't squash) into `main` once green so
 individual commits — which should already be small and self-contained — stay intact.
 
+Enforced by [`scripts/check-branch-name.sh`](../scripts/check-branch-name.sh) (`.githooks/pre-commit`
+locally; the `guardrails` CI job on pull requests) — `main` itself is exempt.
+
 ## Commit messages
 
 [Conventional Commits](https://www.conventionalcommits.org/), enforced by `.githooks/commit-msg`:
@@ -52,9 +55,15 @@ unlike `.git/hooks/`):
 
 | Hook | What it does | Bypass |
 |---|---|---|
-| `pre-commit` | Runs `spotlessApply` on staged `.kt`/`.kts` files and re-stages them; runs the docs-freshness check against staged changes | `SKIP_DOCS_CHECK=1 git commit`, or `git commit --no-verify` for the formatting step too |
+| `pre-commit` | Checks branch name and lint-suppression guardrails; runs `spotlessApply` on staged `.kt`/`.kts` files and re-stages them; runs the docs-freshness check against staged changes | `SKIP_DOCS_CHECK=1 git commit`, or `git commit --no-verify` for everything else |
 | `commit-msg` | Enforces the Conventional Commits format above | `git commit --no-verify` |
 | `pre-push` | Runs `spotlessCheck` (fast; full `lint`/tests run in CI, not here) | `SKIP_PREPUSH=1 git push` |
+
+`pre-commit`'s branch-name and lint-guardrail checks are the same
+[`scripts/check-branch-name.sh`](../scripts/check-branch-name.sh) /
+[`scripts/check-lint-guardrails.sh`](../scripts/check-lint-guardrails.sh) that CI's `guardrails`
+job runs — see [coding-guardrails.md](coding-guardrails.md) for what each one actually enforces
+and why a plain markdown policy isn't enough on its own.
 
 Bypassing a hook should be the exception, not the default — if a hook is wrong for a real
 situation, fix the hook (it's a versioned script anyone can edit and send through review), don't

@@ -34,13 +34,23 @@ picked up with no extra dependency.
 ./gradlew :probe-runtime:lint         # one module
 ```
 
-**This repo's policy is fix, don't baseline.** A previous pass adopted Lint with baseline files
-to grandfather pre-existing findings, then went back and fixed every one of them (`InlinedApi`,
-`ModifierParameter`, `ObsoleteSdkInt`, `MonochromeLauncherIcon`, `StaticFieldLeak`,
-`SimilarGradleDependency`, `MissingPermission`, `MissingSuperCall`, `GestureBackNavigation`) and
-deleted the baseline files — all four modules currently report zero Lint issues. Keep it that
-way: a new finding should be fixed, not baselined, unless fixing it is genuinely out of scope for
-the change at hand (in which case baseline it *and* open a follow-up, don't let it sit silently).
+**This repo's policy is fix, don't baseline — and it's mechanically enforced, not just written
+down here.** [`scripts/check-lint-guardrails.sh`](../scripts/check-lint-guardrails.sh) fails (in
+`.githooks/pre-commit` and in CI) if:
+- any `lint-baseline.xml` file is tracked in git — a previous pass adopted Lint with baselines to
+  grandfather pre-existing findings, then went back and fixed every one of them (`InlinedApi`,
+  `ModifierParameter`, `ObsoleteSdkInt`, `MonochromeLauncherIcon`, `StaticFieldLeak`,
+  `SimilarGradleDependency`, `MissingPermission`, `MissingSuperCall`, `GestureBackNavigation`) and
+  deleted the baselines — a new one reappearing means a new finding got grandfathered instead of
+  fixed;
+- any `build.gradle.kts` disables a Lint issue ID (`disable += "..."`) that isn't listed in
+  [`scripts/lint-disabled-checks.conf`](../scripts/lint-disabled-checks.conf) — which is the only
+  place a module-wide disable's justification lives, so the allowlist and the reason travel
+  together and both are visible in the same diff a reviewer looks at.
+
+If a finding is genuinely out of scope for the change at hand, baseline it *and* open a follow-up
+— don't let the guardrail catch it in CI with no explanation; say so in the commit and use
+`SKIP_DOCS_CHECK`-style transparency, not a silent bypass.
 
 **Deciding how to suppress a genuine false positive:**
 1. Prefer fixing the actual code (rename, restructure, add the missing check) over any
@@ -52,15 +62,23 @@ the change at hand (in which case baseline it *and* open a follow-up, don't let 
    `lint.xml` with an `<issue id="..."><ignore path="..."/></issue>` entry, scoped to the
    specific file and issue — see `probe-runtime/lint.xml` (`StaticFieldLeak` for
    `ProbePlatformHolder.kt`) for the pattern and its justifying comment.
-4. Never disable a whole issue ID at the module level (`disable += "..."`) for a single false
-   positive — that's for issues that are structurally noise for *this* codebase, like
-   `RestrictedApi` (100% Room-generated `Dao_Impl` classes calling Room-internal APIs) or
-   `AndroidGradlePluginVersion`/`GradleDependency` (version-bump advisories, not defects — a
-   deliberate, separately-verified decision, not something Lint should nag about on every run).
+4. Only reach for a module-level `disable += "..."` for issues that are structurally noise for
+   *this* codebase, like `RestrictedApi` (100% Room-generated `Dao_Impl` classes calling
+   Room-internal APIs) or `AndroidGradlePluginVersion`/`GradleDependency` (version-bump
+   advisories, not defects) — and add the issue ID to `scripts/lint-disabled-checks.conf` with a
+   real reason in the same commit; the guardrail script fails the build otherwise.
+
+## Branch naming
+
+[`scripts/check-branch-name.sh`](../scripts/check-branch-name.sh) enforces the
+`<type>/<kebab-case-slug>` convention from [git-guide.md#branching](git-guide.md#branching) — run
+by `.githooks/pre-commit` locally and by the `guardrails` CI job on pull requests (skipped for
+direct pushes to `main`, which are exempt).
 
 ## CI
 
-`.github/workflows/ci.yml` runs `spotlessCheck`, `lint`, tests, an Android debug assemble, and the
+`.github/workflows/ci.yml` runs a `guardrails` job (`check-lint-guardrails.sh`,
+`check-branch-name.sh`), `spotlessCheck`, `lint`, tests, an Android debug assemble, and the
 docs-freshness check (see [git-guide.md#keeping-docs-in-sync](git-guide.md#keeping-docs-in-sync))
 on every push to `main` and every PR. Locally, `.githooks/pre-commit` and `.githooks/pre-push`
 catch the fast subset of this before it ever reaches CI — see [git-guide.md#hooks](git-guide.md#hooks).

@@ -42,9 +42,12 @@ more detail — invoke it whenever you touch `:probe-api`/`:probe-runtime` sourc
 
 ## Conventions
 
-- No baselining a new Lint finding as the default response — fix it (see
-  `docs/coding-guardrails.md`).
+- No baselining a new Lint finding as the default response — fix it. Mechanically enforced (not
+  just documented) by `scripts/check-lint-guardrails.sh`, which fails on a tracked
+  `lint-baseline.xml` or an unlisted `disable += "..."` — see `docs/coding-guardrails.md`.
 - Conventional Commits, enforced by `.githooks/commit-msg` — see `docs/git-guide.md`.
+- Feature branches follow `<type>/<slug>`, enforced by `scripts/check-branch-name.sh` — see
+  `docs/git-guide.md#branching`.
 - Most new capability code belongs in `commonMain` with `expect`/`actual` only for the genuinely
   platform-specific edge, to avoid widening the iOS/Android feature gap further than the
   platforms themselves force (see `docs/guide/development.md`).

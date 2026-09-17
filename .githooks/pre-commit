@@ -4,6 +4,15 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+if ! scripts/check-branch-name.sh; then
+  exit 1
+fi
+
+if ! scripts/check-lint-guardrails.sh; then
+  echo "pre-commit: blocked by lint guardrails check (see above)." >&2
+  exit 1
+fi
+
 STAGED_KOTLIN="$(git diff --cached --name-only --diff-filter=ACM -- '*.kt' '*.kts' || true)"
 
 if [ -n "$STAGED_KOTLIN" ]; then

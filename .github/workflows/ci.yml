@@ -6,6 +6,18 @@ on:
   pull_request:
 
 jobs:
+  guardrails:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint suppression policy (no baselines, no unlisted disables)
+        run: scripts/check-lint-guardrails.sh
+      - name: Branch naming (skipped on push to main)
+        if: github.event_name == 'pull_request'
+        run: scripts/check-branch-name.sh
+        env:
+          GIT_BRANCH_OVERRIDE: ${{ github.head_ref }}
+
   docs-freshness:
     runs-on: macos-latest
     steps:
