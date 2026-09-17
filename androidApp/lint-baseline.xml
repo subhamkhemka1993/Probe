@@ -2,28 +2,6 @@
 <issues format="6" by="lint 9.2.1" type="baseline" client="gradle" dependencies="true" name="AGP (9.2.1)" variant="all" version="9.2.1">
 
     <issue
-        id="MissingPermission"
-        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
-        errorLine1="        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/androidMain/kotlin/com/dev/probe/api/ProbeNotificationPoster.android.kt"
-            line="47"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="MissingSuperCall"
-        message="Overriding method should call `super.onBackPressed`"
-        errorLine1="    override fun onBackPressed() {"
-        errorLine2="                 ~~~~~~~~~~~~~">
-        <location
-            file="src/androidMain/kotlin/com/dev/probe/shell/ProbeActivity.kt"
-            line="64"
-            column="18"/>
-    </issue>
-
-    <issue
         id="GestureBackNavigation"
         message="`onBackPressed` is no longer called for back gestures; migrate to AndroidX&apos;s backward compatible `OnBackPressedDispatcher`"
         errorLine1="    override fun onBackPressed() {"

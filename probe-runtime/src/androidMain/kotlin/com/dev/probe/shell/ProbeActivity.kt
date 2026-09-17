@@ -62,6 +62,6 @@ class ProbeActivity : ComponentActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (!Probe.navigateBack()) finish()
+        if (!Probe.navigateBack()) super.onBackPressed()
     }
 }

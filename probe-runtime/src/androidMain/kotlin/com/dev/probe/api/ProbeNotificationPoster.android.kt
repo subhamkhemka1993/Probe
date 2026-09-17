@@ -44,7 +44,13 @@ internal object ProbeNotificationPoster {
                 .setContentIntent(tapPendingIntent(context, ProbeStartScreen.Inspector))
                 .addAction(0, "Hub", tapPendingIntent(context, ProbeStartScreen.Hub))
                 .build()
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        try {
+            NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        } catch (_: SecurityException) {
+            // Callers already check POST_NOTIFICATIONS before calling post(); this only
+            // guards against the permission being revoked in the gap between that check
+            // and this call.
+        }
     }
 
     fun hide(context: Context) {
