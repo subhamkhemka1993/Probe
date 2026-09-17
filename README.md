@@ -1,4 +1,9 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+This is a Kotlin Multiplatform project targeting Android, iOS. It hosts the sample app for
+`probe`, an embedded debug shell shipped as the `:probe-api`/`:probe-runtime` modules — see
+[`docs/guide/README.md`](docs/guide/README.md) for probe's own documentation,
+[`docs/git-guide.md`](docs/git-guide.md) for this repo's git conventions, and
+[`docs/coding-guardrails.md`](docs/coding-guardrails.md) for formatting/lint conventions. Run
+`./scripts/setup-dev-env.sh` once after cloning to install the git hooks.
 
 * [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
   you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.

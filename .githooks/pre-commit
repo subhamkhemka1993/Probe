@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Fast, local guardrails run before every commit. See docs/git-guide.md#hooks.
+set -euo pipefail
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+STAGED_KOTLIN="$(git diff --cached --name-only --diff-filter=ACM -- '*.kt' '*.kts' || true)"
+
+if [ -n "$STAGED_KOTLIN" ]; then
+  echo "pre-commit: formatting staged Kotlin files with Spotless..."
+  ./gradlew --quiet spotlessApply
+  # Re-stage anything Spotless reformatted so the formatted version is what gets committed.
+  printf '%s\n' "$STAGED_KOTLIN" | xargs -r git add
+fi
+
+if [ "${SKIP_DOCS_CHECK:-0}" != "1" ]; then
+  if ! scripts/check-docs-freshness.sh --staged; then
+    echo "pre-commit: blocked by docs-freshness check (see above)." >&2
+    exit 1
+  fi
+fi

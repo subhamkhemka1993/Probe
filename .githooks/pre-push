@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Light gate before push: format check only (full lint + tests run in CI — see
+# .github/workflows/ci.yml). See docs/git-guide.md#hooks.
+set -euo pipefail
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if [ "${SKIP_PREPUSH:-0}" = "1" ]; then
+  echo "pre-push: SKIP_PREPUSH=1, skipping."
+  exit 0
+fi
+
+echo "pre-push: running spotlessCheck..."
+./gradlew --quiet spotlessCheck

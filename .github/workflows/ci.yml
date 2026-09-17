@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docs-freshness:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check docs/guide is in sync with source it documents
+        run: scripts/check-docs-freshness.sh origin/${{ github.base_ref || 'main' }} HEAD
+
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Spotless
+        run: ./gradlew spotlessCheck
+      - name: Lint (all modules)
+        run: ./gradlew lint
+      - name: Unit tests
+        run: ./gradlew test allTests
+      - name: Assemble Android debug
+        run: ./gradlew :androidApp:assembleDebug

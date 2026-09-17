@@ -25,3 +25,6 @@ type). Compile this into every build variant of your app, on every platform.
 6. To add a new kind of inspector (prefs, DataStore, DB, ...), implement `ProbeInspector` (or, if
    it needs UI, the heavy module's Compose-based `ProbePlugin`, which extends it) and register it
    wherever the heavy module assembles its plugin list — no changes to `:probe-api` required.
+
+See [`../docs/guide/README.md`](../docs/guide/README.md) for the full framework guide (architecture,
+per-platform integration, capability/configuration reference, security model, troubleshooting).
