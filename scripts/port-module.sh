@@ -35,11 +35,13 @@ fi
 # this one file before the generic filename pass so it doesn't land on the same name.
 find "$DEST" -type f -name 'ZDebugConfig.kt' -exec sh -c 'mv "$1" "$(dirname "$1")/ProbeCaptureLimits.kt"' _ {} \;
 
-# Rename Z-prefixed / zdebug_-prefixed file names (contents are fixed by the sed pass below).
-find "$DEST" -type f \( -name 'ZDebug*' -o -name 'ZTool*' -o -name 'zdebug_*' \) | while read -r f; do
+# Rename any file whose name contains ZDebug/ZTool/zdebug_ anywhere, not just at the start
+# (e.g. TestZDebugDatabase.android.kt, InstallZDebugToolsTest.kt). Contents are fixed by the
+# sed pass below; this only has to make the filename match what's inside it.
+find "$DEST" -type f \( -name '*ZDebug*' -o -name '*ZTool*' -o -name '*zdebug_*' \) | while read -r f; do
   dir=$(dirname "$f")
   base=$(basename "$f")
-  newbase=$(printf '%s' "$base" | sed -e 's/^ZDebug/Probe/' -e 's/^ZTool/Probe/' -e 's/^zdebug_/probe_/')
+  newbase=$(printf '%s' "$base" | sed -e 's/ZDebug/Probe/g' -e 's/ZTool/Probe/g' -e 's/zdebug_/probe_/g')
   if [ "$base" != "$newbase" ]; then
     mv "$f" "$dir/$newbase"
   fi
