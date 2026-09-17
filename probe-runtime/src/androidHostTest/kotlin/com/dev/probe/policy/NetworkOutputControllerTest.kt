@@ -19,6 +19,11 @@ import com.dev.probe.network.NetworkDebugRepository
 import com.dev.probe.prefs.DebugPreferencesStore
 import com.dev.probe.session.DebugSessionManager
 import com.dev.probe.session.InMemoryDebugSessionDao
+import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,97 +35,88 @@ import kotlinx.coroutines.test.runTest
 import okio.Path.Companion.toPath
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.util.UUID
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 internal class NetworkOutputControllerTest {
     @Test
-    fun applyModePersistsModeAndTogglesBrowserController() =
-        runTest {
-            val prefs = createPreferencesStore()
-            val fakeServer = FakeBrowserServer()
-            val outputController =
-                createOutputController(
-                    prefs = prefs,
-                    fakeServer = fakeServer,
-                    scope = this,
-                )
+    fun applyModePersistsModeAndTogglesBrowserController() = runTest {
+        val prefs = createPreferencesStore()
+        val fakeServer = FakeBrowserServer()
+        val outputController =
+            createOutputController(
+                prefs = prefs,
+                fakeServer = fakeServer,
+                scope = this,
+            )
 
-            outputController.applyMode(NetworkOutputMode.BROWSER)
+        outputController.applyMode(NetworkOutputMode.BROWSER)
+
+        assertTrue(fakeServer.isRunning)
+        assertEquals(NetworkOutputMode.BROWSER, prefs.preferences.first().networkOutputMode)
+
+        outputController.applyMode(NetworkOutputMode.INSPECTOR)
+
+        assertFalse(fakeServer.isRunning)
+        assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
+    }
+
+    @Test
+    fun restorePersistedModeStartsBrowserWhenBrowserModeWasSaved() = runTest {
+        val prefs = createPreferencesStore()
+        val fakeServer = FakeBrowserServer()
+        val outputController =
+            createOutputController(
+                prefs = prefs,
+                fakeServer = fakeServer,
+                scope = this,
+            )
+        prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
+
+        try {
+            outputController.restorePersistedMode()
 
             assertTrue(fakeServer.isRunning)
-            assertEquals(NetworkOutputMode.BROWSER, prefs.preferences.first().networkOutputMode)
-
+        } finally {
             outputController.applyMode(NetworkOutputMode.INSPECTOR)
-
-            assertFalse(fakeServer.isRunning)
-            assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
         }
+    }
 
     @Test
-    fun restorePersistedModeStartsBrowserWhenBrowserModeWasSaved() =
-        runTest {
-            val prefs = createPreferencesStore()
-            val fakeServer = FakeBrowserServer()
-            val outputController =
-                createOutputController(
-                    prefs = prefs,
-                    fakeServer = fakeServer,
-                    scope = this,
-                )
-            prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
+    fun applyModeCancelsPendingRestoreBeforeApplyingNewMode() = runTest {
+        val prefs = createPreferencesStore()
+        val fakeServer = FakeBrowserServer()
+        val outputController =
+            createOutputController(
+                prefs = prefs,
+                fakeServer = fakeServer,
+                scope = this,
+            )
+        prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
 
-            try {
-                outputController.restorePersistedMode()
+        outputController.scheduleRestore()
+        outputController.applyMode(NetworkOutputMode.INSPECTOR)
+        advanceUntilIdle()
 
-                assertTrue(fakeServer.isRunning)
-            } finally {
-                outputController.applyMode(NetworkOutputMode.INSPECTOR)
-            }
-        }
+        assertFalse(fakeServer.isRunning)
+        assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
+    }
 
     @Test
-    fun applyModeCancelsPendingRestoreBeforeApplyingNewMode() =
-        runTest {
-            val prefs = createPreferencesStore()
-            val fakeServer = FakeBrowserServer()
-            val outputController =
-                createOutputController(
-                    prefs = prefs,
-                    fakeServer = fakeServer,
-                    scope = this,
-                )
-            prefs.setNetworkOutputMode(NetworkOutputMode.BROWSER)
+    fun scheduleRestoreMarksRestoreScheduled() = runTest {
+        val prefs = createPreferencesStore()
+        val fakeServer = FakeBrowserServer()
+        val outputController =
+            createOutputController(
+                prefs = prefs,
+                fakeServer = fakeServer,
+                scope = this,
+            )
 
-            outputController.scheduleRestore()
-            outputController.applyMode(NetworkOutputMode.INSPECTOR)
-            advanceUntilIdle()
+        assertFalse(outputController.restoreScheduled)
+        outputController.scheduleRestore()
 
-            assertFalse(fakeServer.isRunning)
-            assertEquals(NetworkOutputMode.INSPECTOR, prefs.preferences.first().networkOutputMode)
-        }
-
-    @Test
-    fun scheduleRestoreMarksRestoreScheduled() =
-        runTest {
-            val prefs = createPreferencesStore()
-            val fakeServer = FakeBrowserServer()
-            val outputController =
-                createOutputController(
-                    prefs = prefs,
-                    fakeServer = fakeServer,
-                    scope = this,
-                )
-
-            assertFalse(outputController.restoreScheduled)
-            outputController.scheduleRestore()
-
-            assertTrue(outputController.restoreScheduled)
-        }
+        assertTrue(outputController.restoreScheduled)
+    }
 
     private fun createOutputController(
         prefs: DebugPreferencesStore,
@@ -177,10 +173,7 @@ internal class NetworkOutputControllerTest {
             private set
         private var startCount = 0
 
-        override fun start(
-            onStarted: (BrowserSession) -> Unit,
-            onError: (Throwable) -> Unit,
-        ) {
+        override fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit) {
             startCount += 1
             isRunning = true
             onStarted(
@@ -209,11 +202,7 @@ internal class NetworkOutputControllerTest {
 
         override suspend fun getById(id: String): NetworkCallEntity? = calls.value.firstOrNull { it.id == id }
 
-        override fun observeSearch(
-            sessionId: String,
-            query: String,
-            limit: Int,
-        ): Flow<List<NetworkCallEntity>> =
+        override fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>> =
             calls.map { currentCalls ->
                 currentCalls
                     .filter { it.sessionId == sessionId }
@@ -234,10 +223,7 @@ internal class NetworkOutputControllerTest {
             calls.value = calls.value.filter { it.sessionId in sessionIds }
         }
 
-        override suspend fun enforceCountCapForSession(
-            sessionId: String,
-            maxEntries: Int,
-        ) {
+        override suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int) {
             val keepIds =
                 calls.value
                     .filter { it.sessionId == sessionId }
@@ -248,10 +234,9 @@ internal class NetworkOutputControllerTest {
             calls.value = calls.value.filterNot { it.sessionId == sessionId && it.id !in keepIds }
         }
 
-        private fun NetworkCallEntity.matches(query: String): Boolean =
-            url.contains(query) ||
-                path.contains(query) ||
-                method.contains(query) ||
-                responseStatus?.toString()?.contains(query) == true
+        private fun NetworkCallEntity.matches(query: String): Boolean = url.contains(query) ||
+            path.contains(query) ||
+            method.contains(query) ||
+            responseStatus?.toString()?.contains(query) == true
     }
 }

@@ -13,10 +13,10 @@ class CurlBuilderTest {
                 method = "POST",
                 url = "https://api.zebpay.com/v1/foo",
                 requestHeaders =
-                    mapOf(
-                        "Authorization" to "***",
-                        "Content-Type" to "application/json",
-                    ),
+                mapOf(
+                    "Authorization" to "***",
+                    "Content-Type" to "application/json",
+                ),
                 requestBody = """{"a":1}""",
             )
 

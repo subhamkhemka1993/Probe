@@ -61,30 +61,27 @@ internal actual class PermissionDevActionsController internal constructor(
     }
 
     /** Manifest declaration gate — moko can't distinguish "not declared" from "denied". */
-    private fun isDeclared(manifestPermission: String): Boolean =
-        runCatching {
-            @Suppress("DEPRECATION")
-            context.packageManager
-                .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
-                .requestedPermissions
-                ?.contains(manifestPermission)
-        }.getOrNull() ?: false
+    private fun isDeclared(manifestPermission: String): Boolean = runCatching {
+        @Suppress("DEPRECATION")
+        context.packageManager
+            .getPackageInfo(context.packageName, PackageManager.GET_PERMISSIONS)
+            .requestedPermissions
+            ?.contains(manifestPermission)
+    }.getOrNull() ?: false
 
-    private fun String.toManifestPermission(): String? =
-        when (this) {
-            KnownPermission.Notifications.id -> Manifest.permission.POST_NOTIFICATIONS
-            KnownPermission.Camera.id -> Manifest.permission.CAMERA
-            KnownPermission.Location.id -> Manifest.permission.ACCESS_FINE_LOCATION
-            else -> null
-        }
+    private fun String.toManifestPermission(): String? = when (this) {
+        KnownPermission.Notifications.id -> Manifest.permission.POST_NOTIFICATIONS
+        KnownPermission.Camera.id -> Manifest.permission.CAMERA
+        KnownPermission.Location.id -> Manifest.permission.ACCESS_FINE_LOCATION
+        else -> null
+    }
 
-    private fun String.toMokoPermission(): Permission? =
-        when (this) {
-            KnownPermission.Notifications.id -> Permission.REMOTE_NOTIFICATION
-            KnownPermission.Camera.id -> Permission.CAMERA
-            KnownPermission.Location.id -> Permission.LOCATION
-            else -> null
-        }
+    private fun String.toMokoPermission(): Permission? = when (this) {
+        KnownPermission.Notifications.id -> Permission.REMOTE_NOTIFICATION
+        KnownPermission.Camera.id -> Permission.CAMERA
+        KnownPermission.Location.id -> Permission.LOCATION
+        else -> null
+    }
 }
 
 @Composable

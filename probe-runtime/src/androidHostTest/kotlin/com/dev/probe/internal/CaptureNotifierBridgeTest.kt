@@ -25,6 +25,12 @@ import com.dev.probe.network.model.NetworkCall
 import com.dev.probe.prefs.DebugPreferencesStore
 import com.dev.probe.session.DebugSessionManager
 import com.dev.probe.session.InMemoryDebugSessionDao
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -34,12 +40,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 /**
  * Uses fully in-memory fakes for the repository DAO, prefs [DataStore] and browser server so the
@@ -55,32 +55,31 @@ internal class CaptureNotifierBridgeTest {
     private val nowMillis = Clock.System.now().toEpochMilliseconds()
 
     @Test
-    fun mapsCallListToNotifierStateOnFirstSampleTick() =
-        runTest {
-            val repository = createRepository(this)
-            repository.insertPending(sampleCall(id = "call-1", timestampMillis = nowMillis, status = 200))
+    fun mapsCallListToNotifierStateOnFirstSampleTick() = runTest {
+        val repository = createRepository(this)
+        repository.insertPending(sampleCall(id = "call-1", timestampMillis = nowMillis, status = 200))
 
-            val notifier = RecordingNotifier(platform)
-            val bridge =
-                CaptureNotifierBridge(
-                    repository = repository,
-                    preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
-                    browserController = createBrowserController(repository, this),
-                    notifier = notifier,
-                    scope = backgroundScope,
-                )
+        val notifier = RecordingNotifier(platform)
+        val bridge =
+            CaptureNotifierBridge(
+                repository = repository,
+                preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
+                browserController = createBrowserController(repository, this),
+                notifier = notifier,
+                scope = backgroundScope,
+            )
 
-            bridge.start()
-            advanceTimeBy(SAMPLE_SETTLE_MS)
+        bridge.start()
+        advanceTimeBy(SAMPLE_SETTLE_MS)
 
-            assertEquals(1, notifier.lastState?.requestCount)
-            assertEquals(200, notifier.lastState?.lastStatusCode)
-            assertEquals(NetworkOutputMode.INSPECTOR, notifier.lastState?.outputMode)
-            assertNull(notifier.lastState?.browserUrl)
+        assertEquals(1, notifier.lastState?.requestCount)
+        assertEquals(200, notifier.lastState?.lastStatusCode)
+        assertEquals(NetworkOutputMode.INSPECTOR, notifier.lastState?.outputMode)
+        assertNull(notifier.lastState?.browserUrl)
 
-            bridge.stop()
-            assertTrue(notifier.hideCalled)
-        }
+        bridge.stop()
+        assertTrue(notifier.hideCalled)
+    }
 
     /**
      * [sample] ticks on a fixed schedule from when the pipeline starts (here: 3000ms, 6000ms,
@@ -89,35 +88,34 @@ internal class CaptureNotifierBridgeTest {
      * state, fires at that boundary.
      */
     @Test
-    fun coalescesUpdatesWithinOneSampleTickIntoOneShow() =
-        runTest {
-            val repository = createRepository(this)
-            val notifier = RecordingNotifier(platform)
-            val bridge =
-                CaptureNotifierBridge(
-                    repository = repository,
-                    preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
-                    browserController = createBrowserController(repository, this),
-                    notifier = notifier,
-                    scope = backgroundScope,
-                )
+    fun coalescesUpdatesWithinOneSampleTickIntoOneShow() = runTest {
+        val repository = createRepository(this)
+        val notifier = RecordingNotifier(platform)
+        val bridge =
+            CaptureNotifierBridge(
+                repository = repository,
+                preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
+                browserController = createBrowserController(repository, this),
+                notifier = notifier,
+                scope = backgroundScope,
+            )
 
-            bridge.start()
-            advanceTimeBy(SAMPLE_SETTLE_MS) // t=3100: crosses the first tick (empty state) — absorbed below.
-            notifier.showCount = 0
+        bridge.start()
+        advanceTimeBy(SAMPLE_SETTLE_MS) // t=3100: crosses the first tick (empty state) — absorbed below.
+        notifier.showCount = 0
 
-            repository.insertPending(sampleCall(id = "call-1", timestampMillis = nowMillis, status = 200))
-            advanceTimeBy(RAPID_UPDATE_GAP_MS) // t=3200
-            repository.insertPending(sampleCall(id = "call-2", timestampMillis = nowMillis + 1, status = 404))
+        repository.insertPending(sampleCall(id = "call-1", timestampMillis = nowMillis, status = 200))
+        advanceTimeBy(RAPID_UPDATE_GAP_MS) // t=3200
+        repository.insertPending(sampleCall(id = "call-2", timestampMillis = nowMillis + 1, status = 404))
 
-            advanceTimeBy(TICK_MARGIN_MS) // t=3300: still short of the next tick at t=6000.
-            assertEquals(0, notifier.showCount, "both calls landed inside the same tick interval; must stay conflated")
+        advanceTimeBy(TICK_MARGIN_MS) // t=3300: still short of the next tick at t=6000.
+        assertEquals(0, notifier.showCount, "both calls landed inside the same tick interval; must stay conflated")
 
-            advanceTimeBy(SAMPLE_WINDOW_MS) // t=6300: past the second tick at t=6000.
-            assertEquals(1, notifier.showCount)
-            assertEquals(2, notifier.lastState?.requestCount)
-            assertEquals(404, notifier.lastState?.lastStatusCode)
-        }
+        advanceTimeBy(SAMPLE_WINDOW_MS) // t=6300: past the second tick at t=6000.
+        assertEquals(1, notifier.showCount)
+        assertEquals(2, notifier.lastState?.requestCount)
+        assertEquals(404, notifier.lastState?.lastStatusCode)
+    }
 
     /**
      * A `debounce()`-based pipeline resets its timer on every emission and can go silent
@@ -125,38 +123,37 @@ internal class CaptureNotifierBridgeTest {
      * pipeline keeps surfacing periodic updates across several tick boundaries instead.
      */
     @Test
-    fun sustainedTrafficStillProducesPeriodicUpdates() =
-        runTest {
-            val repository = createRepository(this)
-            val notifier = RecordingNotifier(platform)
-            val bridge =
-                CaptureNotifierBridge(
-                    repository = repository,
-                    preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
-                    browserController = createBrowserController(repository, this),
-                    notifier = notifier,
-                    scope = backgroundScope,
-                )
-
-            bridge.start()
-            advanceTimeBy(SAMPLE_SETTLE_MS) // crosses the first tick (empty state) — absorbed below.
-            notifier.showCount = 0
-
-            // Continuous traffic, spaced faster than the tick period, spanning several tick boundaries.
-            repeat(SUSTAINED_TRAFFIC_UPDATE_COUNT) { index ->
-                repository.insertPending(
-                    sampleCall(id = "call-$index", timestampMillis = nowMillis + index, status = 200),
-                )
-                advanceTimeBy(RAPID_UPDATE_GAP_MS)
-            }
-            advanceTimeBy(SAMPLE_WINDOW_MS) // let the tick straddling the loop's end also fire.
-
-            assertTrue(
-                notifier.showCount >= MIN_EXPECTED_UPDATES_ACROSS_WINDOWS,
-                "sustained traffic across multiple ${SAMPLE_WINDOW_MS}ms windows must keep producing " +
-                    "updates, got only ${notifier.showCount}",
+    fun sustainedTrafficStillProducesPeriodicUpdates() = runTest {
+        val repository = createRepository(this)
+        val notifier = RecordingNotifier(platform)
+        val bridge =
+            CaptureNotifierBridge(
+                repository = repository,
+                preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
+                browserController = createBrowserController(repository, this),
+                notifier = notifier,
+                scope = backgroundScope,
             )
+
+        bridge.start()
+        advanceTimeBy(SAMPLE_SETTLE_MS) // crosses the first tick (empty state) — absorbed below.
+        notifier.showCount = 0
+
+        // Continuous traffic, spaced faster than the tick period, spanning several tick boundaries.
+        repeat(SUSTAINED_TRAFFIC_UPDATE_COUNT) { index ->
+            repository.insertPending(
+                sampleCall(id = "call-$index", timestampMillis = nowMillis + index, status = 200),
+            )
+            advanceTimeBy(RAPID_UPDATE_GAP_MS)
         }
+        advanceTimeBy(SAMPLE_WINDOW_MS) // let the tick straddling the loop's end also fire.
+
+        assertTrue(
+            notifier.showCount >= MIN_EXPECTED_UPDATES_ACROSS_WINDOWS,
+            "sustained traffic across multiple ${SAMPLE_WINDOW_MS}ms windows must keep producing " +
+                "updates, got only ${notifier.showCount}",
+        )
+    }
 
     private companion object {
         /** Mirrors [CaptureNotifierBridge]'s throttle window; kept local since that constant is private. */
@@ -180,10 +177,7 @@ internal class CaptureNotifierBridgeTest {
         )
     }
 
-    private fun createBrowserController(
-        repository: NetworkDebugRepository,
-        scope: CoroutineScope,
-    ): NetworkBrowserController =
+    private fun createBrowserController(repository: NetworkDebugRepository, scope: CoroutineScope): NetworkBrowserController =
         NetworkBrowserController(
             repository = repository,
             config = NetworkBrowserConfig(),
@@ -193,11 +187,7 @@ internal class CaptureNotifierBridgeTest {
             serverFactory = { FakeBrowserServer() },
         )
 
-    private fun sampleCall(
-        id: String,
-        timestampMillis: Long,
-        status: Int,
-    ) = NetworkCall(
+    private fun sampleCall(id: String, timestampMillis: Long, status: Int) = NetworkCall(
         id = id,
         timestampMillis = timestampMillis,
         method = "GET",
@@ -215,9 +205,7 @@ internal class CaptureNotifierBridgeTest {
         isComplete = true,
     )
 
-    private class RecordingNotifier(
-        platform: ProbePlatformContext,
-    ) : ProbeNotifier(platform) {
+    private class RecordingNotifier(platform: ProbePlatformContext) : ProbeNotifier(platform) {
         var lastState: ProbeNotifierState? = null
         var showCount = 0
         var hideCalled = false
@@ -243,10 +231,7 @@ internal class CaptureNotifierBridgeTest {
     }
 
     private class FakeBrowserServer : BrowserServer {
-        override fun start(
-            onStarted: (BrowserSession) -> Unit,
-            onError: (Throwable) -> Unit,
-        ) = Unit
+        override fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit) = Unit
 
         override suspend fun stop() = Unit
 
@@ -276,11 +261,7 @@ internal class CaptureNotifierBridgeTest {
 
         override suspend fun getById(id: String): NetworkCallEntity? = calls.value.firstOrNull { it.id == id }
 
-        override fun observeSearch(
-            sessionId: String,
-            query: String,
-            limit: Int,
-        ): Flow<List<NetworkCallEntity>> =
+        override fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>> =
             calls.map { currentCalls ->
                 currentCalls
                     .filter { it.sessionId == sessionId }
@@ -301,10 +282,7 @@ internal class CaptureNotifierBridgeTest {
             calls.value = calls.value.filter { it.sessionId in sessionIds }
         }
 
-        override suspend fun enforceCountCapForSession(
-            sessionId: String,
-            maxEntries: Int,
-        ) {
+        override suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int) {
             val keepIds =
                 calls.value
                     .filter { it.sessionId == sessionId }
@@ -315,10 +293,9 @@ internal class CaptureNotifierBridgeTest {
             calls.value = calls.value.filterNot { it.sessionId == sessionId && it.id !in keepIds }
         }
 
-        private fun NetworkCallEntity.matches(query: String): Boolean =
-            url.contains(query) ||
-                path.contains(query) ||
-                method.contains(query) ||
-                responseStatus?.toString()?.contains(query) == true
+        private fun NetworkCallEntity.matches(query: String): Boolean = url.contains(query) ||
+            path.contains(query) ||
+            method.contains(query) ||
+            responseStatus?.toString()?.contains(query) == true
     }
 }

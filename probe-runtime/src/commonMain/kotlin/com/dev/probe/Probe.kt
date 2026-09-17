@@ -59,25 +59,24 @@ internal object Probe {
      * Pops one level in the debug UI stack. Returns `true` if handled, `false` if nothing to pop
      * (caller should let the system handle back — e.g. exit the app).
      */
-    fun navigateBack(): Boolean =
-        when (_screen.value) {
-            null -> false
-            ProbeScreen.HUB -> {
+    fun navigateBack(): Boolean = when (_screen.value) {
+        null -> false
+        ProbeScreen.HUB -> {
+            dismissAll()
+            true
+        }
+        ProbeScreen.NETWORK_MODE -> {
+            showHub()
+            true
+        }
+        ProbeScreen.PERMISSIONS -> {
+            showHub()
+            true
+        }
+        ProbeScreen.INSPECTOR ->
+            inspectorBackHandler?.invoke() ?: run {
                 dismissAll()
                 true
             }
-            ProbeScreen.NETWORK_MODE -> {
-                showHub()
-                true
-            }
-            ProbeScreen.PERMISSIONS -> {
-                showHub()
-                true
-            }
-            ProbeScreen.INSPECTOR ->
-                inspectorBackHandler?.invoke() ?: run {
-                    dismissAll()
-                    true
-                }
-        }
+    }
 }

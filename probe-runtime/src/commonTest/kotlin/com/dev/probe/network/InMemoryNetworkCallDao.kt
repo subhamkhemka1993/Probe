@@ -26,20 +26,15 @@ internal class InMemoryNetworkCallDao : NetworkCallDao {
 
     override suspend fun getById(id: String): NetworkCallEntity? = calls.value.firstOrNull { it.id == id }
 
-    override fun observeSearch(
-        sessionId: String,
-        query: String,
-        limit: Int,
-    ): Flow<List<NetworkCallEntity>> =
-        calls.map { entities ->
-            entities
-                .asSequence()
-                .filter { it.sessionId == sessionId }
-                .filter { query.isEmpty() || it.matchesSearch(query) }
-                .sortedByDescending { it.timestampMillis }
-                .take(limit)
-                .toList()
-        }
+    override fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>> = calls.map { entities ->
+        entities
+            .asSequence()
+            .filter { it.sessionId == sessionId }
+            .filter { query.isEmpty() || it.matchesSearch(query) }
+            .sortedByDescending { it.timestampMillis }
+            .take(limit)
+            .toList()
+    }
 
     override suspend fun clearAll() {
         calls.value = emptyList()
@@ -53,10 +48,7 @@ internal class InMemoryNetworkCallDao : NetworkCallDao {
         calls.value = calls.value.filter { it.sessionId in sessionIds }
     }
 
-    override suspend fun enforceCountCapForSession(
-        sessionId: String,
-        maxEntries: Int,
-    ) {
+    override suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int) {
         val sessionCalls =
             calls.value
                 .filter { it.sessionId == sessionId }

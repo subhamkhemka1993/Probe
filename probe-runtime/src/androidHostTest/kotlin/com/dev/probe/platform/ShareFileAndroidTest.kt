@@ -7,6 +7,7 @@ import androidx.core.content.FileProvider
 import androidx.test.core.app.ApplicationProvider
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.internal.ProbePlatformHolder
+import java.io.File
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -14,7 +15,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
-import java.io.File
 
 /**
  * Robolectric can't parse [FileProvider]'s `<meta-data>` path-strategy XML (see
@@ -47,11 +47,7 @@ class ShareFileAndroidTest {
         companion object {
             @JvmStatic
             @Implementation
-            fun getUriForFile(
-                context: Context,
-                authority: String,
-                file: File,
-            ): Uri = Uri.parse("content://$authority/${file.name}")
+            fun getUriForFile(context: Context, authority: String, file: File): Uri = Uri.parse("content://$authority/${file.name}")
         }
     }
 }

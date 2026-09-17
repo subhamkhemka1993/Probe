@@ -9,13 +9,6 @@ import com.dev.probe.network.NetworkDebugRepository
 import com.dev.probe.network.model.NetworkCall
 import com.dev.probe.session.DebugSessionManager
 import com.dev.probe.session.InMemoryDebugSessionDao
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -24,183 +17,182 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 
 internal class NetworkBrowserControllerTest {
     @Test
-    fun startPublishesRunningConnectionInfo() =
-        runTest {
-            val fakeServer = FakeBrowserServer()
-            val controller =
-                createController(
-                    fakeServer = fakeServer,
-                    scope = this,
-                )
-
-            controller.start()
-
-            val running = assertIs<BrowserConnectionInfo.Running>(controller.connectionInfo.value)
-            assertEquals(8765, running.port)
-            assertEquals("token-1", running.token)
-            assertEquals("http://192.168.1.10:8765/?token=token-1", running.wifiUrl)
-            assertEquals("http://10.0.2.2:8765/?token=token-1", running.emulatorUrl)
-            assertEquals("http://127.0.0.1:8765/?token=token-1", running.simulatorUrl)
-
-            controller.stop()
-
-            assertEquals(BrowserConnectionInfo.Stopped, controller.connectionInfo.value)
-            assertFalse(fakeServer.isRunning)
-        }
-
-    @Test
-    fun stopRotatesTokenOnNextStart() =
-        runTest {
-            val controller =
-                createController(
-                    fakeServer = FakeBrowserServer(),
-                    scope = this,
-                )
-
-            controller.start()
-            val first = (controller.connectionInfo.value as BrowserConnectionInfo.Running).token
-
-            controller.stop()
-            controller.start()
-            val second = (controller.connectionInfo.value as BrowserConnectionInfo.Running).token
-
-            assertTrue(first != second)
-
-            controller.stop()
-        }
-
-    @Test
-    fun startIsNoOpWhenDisabled() =
-        runTest {
-            val fakeServer = FakeBrowserServer()
-            val controller =
-                createController(
-                    fakeServer = fakeServer,
-                    scope = this,
-                    isEnabled = { false },
-                )
-
-            controller.start()
-
-            assertEquals(BrowserConnectionInfo.Stopped, controller.connectionInfo.value)
-            assertFalse(fakeServer.isRunning)
-        }
-
-    @Test
-    fun stopIsNoOpWhenDisabledAndNeverConstructsTheServer() =
-        runTest {
-            var factoryInvocations = 0
-            val controller =
-                NetworkBrowserController(
-                    repository = createRepository(this),
-                    config = NetworkBrowserConfig(),
-                    addressProvider = FakeAddressProvider(),
-                    scope = this,
-                    isEnabled = { false },
-                    serverFactory = {
-                        factoryInvocations += 1
-                        FakeBrowserServer()
-                    },
-                )
-
-            controller.stop()
-
-            assertEquals(
-                0,
-                factoryInvocations,
-                "stop() on a disabled controller must never construct the lazy server",
+    fun startPublishesRunningConnectionInfo() = runTest {
+        val fakeServer = FakeBrowserServer()
+        val controller =
+            createController(
+                fakeServer = fakeServer,
+                scope = this,
             )
-        }
+
+        controller.start()
+
+        val running = assertIs<BrowserConnectionInfo.Running>(controller.connectionInfo.value)
+        assertEquals(8765, running.port)
+        assertEquals("token-1", running.token)
+        assertEquals("http://192.168.1.10:8765/?token=token-1", running.wifiUrl)
+        assertEquals("http://10.0.2.2:8765/?token=token-1", running.emulatorUrl)
+        assertEquals("http://127.0.0.1:8765/?token=token-1", running.simulatorUrl)
+
+        controller.stop()
+
+        assertEquals(BrowserConnectionInfo.Stopped, controller.connectionInfo.value)
+        assertFalse(fakeServer.isRunning)
+    }
 
     @Test
-    fun repositoryUpdatesBroadcastChangedCalls() =
-        runTest {
-            val fakeServer = FakeBrowserServer()
-            val repository = createRepository(this)
-            val controller =
-                createController(
-                    repository = repository,
-                    fakeServer = fakeServer,
-                    scope = this,
-                )
+    fun stopRotatesTokenOnNextStart() = runTest {
+        val controller =
+            createController(
+                fakeServer = FakeBrowserServer(),
+                scope = this,
+            )
 
-            controller.start()
-            repository.insertPending(sampleCall(id = "call-1", path = "/markets"))
-            advanceUntilIdle()
+        controller.start()
+        val first = (controller.connectionInfo.value as BrowserConnectionInfo.Running).token
 
-            assertEquals(listOf("call-1"), fakeServer.broadcastedCalls.map { it.id })
+        controller.stop()
+        controller.start()
+        val second = (controller.connectionInfo.value as BrowserConnectionInfo.Running).token
 
-            controller.stop()
-            repository.insertPending(sampleCall(id = "call-2", path = "/orders"))
-            advanceUntilIdle()
+        assertTrue(first != second)
 
-            assertEquals(listOf("call-1"), fakeServer.broadcastedCalls.map { it.id })
-        }
+        controller.stop()
+    }
 
     @Test
-    fun stopsWhenBackgroundedAndAutoStopEnabled() =
-        runTest {
-            val fakeServer = FakeBrowserServer()
-            val controller =
-                createController(
-                    fakeServer = fakeServer,
-                    scope = this,
-                    config = NetworkBrowserConfig(autoStopOnBackground = true),
-                )
+    fun startIsNoOpWhenDisabled() = runTest {
+        val fakeServer = FakeBrowserServer()
+        val controller =
+            createController(
+                fakeServer = fakeServer,
+                scope = this,
+                isEnabled = { false },
+            )
 
-            controller.start()
-            assertTrue(fakeServer.isRunning)
+        controller.start()
 
-            controller.onLifecyclePause()
-            advanceUntilIdle() // onLifecyclePause is fire-and-forget: it launches stop() rather than awaiting it.
-
-            assertFalse(fakeServer.isRunning)
-            assertEquals(BrowserConnectionInfo.Stopped, controller.connectionInfo.value)
-        }
+        assertEquals(BrowserConnectionInfo.Stopped, controller.connectionInfo.value)
+        assertFalse(fakeServer.isRunning)
+    }
 
     @Test
-    fun simulatorUrlIsNullOnRealDevice() =
-        runTest {
-            val fakeServer = FakeBrowserServer()
-            val controller =
-                createController(
-                    fakeServer = fakeServer,
-                    scope = this,
-                    addressProvider = FakeAddressProvider(isSimulator = false),
-                )
+    fun stopIsNoOpWhenDisabledAndNeverConstructsTheServer() = runTest {
+        var factoryInvocations = 0
+        val controller =
+            NetworkBrowserController(
+                repository = createRepository(this),
+                config = NetworkBrowserConfig(),
+                addressProvider = FakeAddressProvider(),
+                scope = this,
+                isEnabled = { false },
+                serverFactory = {
+                    factoryInvocations += 1
+                    FakeBrowserServer()
+                },
+            )
 
-            controller.start()
+        controller.stop()
 
-            val running = assertIs<BrowserConnectionInfo.Running>(controller.connectionInfo.value)
-            assertNull(running.simulatorUrl)
-
-            controller.stop()
-        }
+        assertEquals(
+            0,
+            factoryInvocations,
+            "stop() on a disabled controller must never construct the lazy server",
+        )
+    }
 
     @Test
-    fun staysRunningWhenAutoStopDisabled() =
-        runTest {
-            val fakeServer = FakeBrowserServer()
-            val controller =
-                createController(
-                    fakeServer = fakeServer,
-                    scope = this,
-                    config = NetworkBrowserConfig(autoStopOnBackground = false),
-                )
+    fun repositoryUpdatesBroadcastChangedCalls() = runTest {
+        val fakeServer = FakeBrowserServer()
+        val repository = createRepository(this)
+        val controller =
+            createController(
+                repository = repository,
+                fakeServer = fakeServer,
+                scope = this,
+            )
 
-            controller.start()
-            assertTrue(fakeServer.isRunning)
+        controller.start()
+        repository.insertPending(sampleCall(id = "call-1", path = "/markets"))
+        advanceUntilIdle()
 
-            controller.onLifecyclePause()
+        assertEquals(listOf("call-1"), fakeServer.broadcastedCalls.map { it.id })
 
-            assertTrue(fakeServer.isRunning)
-            assertIs<BrowserConnectionInfo.Running>(controller.connectionInfo.value)
+        controller.stop()
+        repository.insertPending(sampleCall(id = "call-2", path = "/orders"))
+        advanceUntilIdle()
 
-            controller.stop()
-        }
+        assertEquals(listOf("call-1"), fakeServer.broadcastedCalls.map { it.id })
+    }
+
+    @Test
+    fun stopsWhenBackgroundedAndAutoStopEnabled() = runTest {
+        val fakeServer = FakeBrowserServer()
+        val controller =
+            createController(
+                fakeServer = fakeServer,
+                scope = this,
+                config = NetworkBrowserConfig(autoStopOnBackground = true),
+            )
+
+        controller.start()
+        assertTrue(fakeServer.isRunning)
+
+        controller.onLifecyclePause()
+        advanceUntilIdle() // onLifecyclePause is fire-and-forget: it launches stop() rather than awaiting it.
+
+        assertFalse(fakeServer.isRunning)
+        assertEquals(BrowserConnectionInfo.Stopped, controller.connectionInfo.value)
+    }
+
+    @Test
+    fun simulatorUrlIsNullOnRealDevice() = runTest {
+        val fakeServer = FakeBrowserServer()
+        val controller =
+            createController(
+                fakeServer = fakeServer,
+                scope = this,
+                addressProvider = FakeAddressProvider(isSimulator = false),
+            )
+
+        controller.start()
+
+        val running = assertIs<BrowserConnectionInfo.Running>(controller.connectionInfo.value)
+        assertNull(running.simulatorUrl)
+
+        controller.stop()
+    }
+
+    @Test
+    fun staysRunningWhenAutoStopDisabled() = runTest {
+        val fakeServer = FakeBrowserServer()
+        val controller =
+            createController(
+                fakeServer = fakeServer,
+                scope = this,
+                config = NetworkBrowserConfig(autoStopOnBackground = false),
+            )
+
+        controller.start()
+        assertTrue(fakeServer.isRunning)
+
+        controller.onLifecyclePause()
+
+        assertTrue(fakeServer.isRunning)
+        assertIs<BrowserConnectionInfo.Running>(controller.connectionInfo.value)
+
+        controller.stop()
+    }
 
     private fun createController(
         repository: NetworkDebugRepository = createRepository(CoroutineScope(kotlin.coroutines.EmptyCoroutineContext)),
@@ -209,15 +201,14 @@ internal class NetworkBrowserControllerTest {
         isEnabled: () -> Boolean = { true },
         config: NetworkBrowserConfig = NetworkBrowserConfig(),
         addressProvider: BrowserAddressProvider = FakeAddressProvider(),
-    ): NetworkBrowserController =
-        NetworkBrowserController(
-            repository = repository,
-            config = config,
-            addressProvider = addressProvider,
-            scope = scope,
-            isEnabled = isEnabled,
-            serverFactory = { fakeServer },
-        )
+    ): NetworkBrowserController = NetworkBrowserController(
+        repository = repository,
+        config = config,
+        addressProvider = addressProvider,
+        scope = scope,
+        isEnabled = isEnabled,
+        serverFactory = { fakeServer },
+    )
 
     private fun createRepository(scope: CoroutineScope): NetworkDebugRepository {
         val callDao = InMemoryNetworkCallDao()
@@ -229,10 +220,7 @@ internal class NetworkBrowserControllerTest {
         )
     }
 
-    private fun sampleCall(
-        id: String,
-        path: String,
-    ) = NetworkCall(
+    private fun sampleCall(id: String, path: String) = NetworkCall(
         id = id,
         timestampMillis = Clock.System.now().toEpochMilliseconds(),
         method = "GET",
@@ -250,10 +238,7 @@ internal class NetworkBrowserControllerTest {
         isComplete = true,
     )
 
-    private class FakeAddressProvider(
-        isEmulator: Boolean = true,
-        isSimulator: Boolean = true,
-    ) : BrowserAddressProvider {
+    private class FakeAddressProvider(isEmulator: Boolean = true, isSimulator: Boolean = true) : BrowserAddressProvider {
         private val emulator = isEmulator
         private val simulator = isSimulator
 
@@ -272,10 +257,7 @@ internal class NetworkBrowserControllerTest {
             private set
         private var startCount = 0
 
-        override fun start(
-            onStarted: (BrowserSession) -> Unit,
-            onError: (Throwable) -> Unit,
-        ) {
+        override fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit) {
             startCount += 1
             isRunning = true
             onStarted(
@@ -306,11 +288,7 @@ internal class NetworkBrowserControllerTest {
 
         override suspend fun getById(id: String): NetworkCallEntity? = calls.value.firstOrNull { it.id == id }
 
-        override fun observeSearch(
-            sessionId: String,
-            query: String,
-            limit: Int,
-        ): Flow<List<NetworkCallEntity>> =
+        override fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>> =
             calls.map { currentCalls ->
                 currentCalls
                     .filter { it.sessionId == sessionId }
@@ -331,10 +309,7 @@ internal class NetworkBrowserControllerTest {
             calls.value = calls.value.filter { it.sessionId in sessionIds }
         }
 
-        override suspend fun enforceCountCapForSession(
-            sessionId: String,
-            maxEntries: Int,
-        ) {
+        override suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int) {
             val keepIds =
                 calls.value
                     .filter { it.sessionId == sessionId }
@@ -345,10 +320,9 @@ internal class NetworkBrowserControllerTest {
             calls.value = calls.value.filterNot { it.sessionId == sessionId && it.id !in keepIds }
         }
 
-        private fun NetworkCallEntity.matches(query: String): Boolean =
-            url.contains(query) ||
-                path.contains(query) ||
-                method.contains(query) ||
-                responseStatus?.toString()?.contains(query) == true
+        private fun NetworkCallEntity.matches(query: String): Boolean = url.contains(query) ||
+            path.contains(query) ||
+            method.contains(query) ||
+            responseStatus?.toString()?.contains(query) == true
     }
 }

@@ -3,9 +3,7 @@ package com.dev.probe.browser
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class NetworkCallsResponse(
-    val calls: List<NetworkCallDto>,
-)
+internal data class NetworkCallsResponse(val calls: List<NetworkCallDto>)
 
 @Serializable
 internal data class NetworkCallDto(
@@ -27,23 +25,13 @@ internal data class NetworkCallDto(
 )
 
 @Serializable
-internal data class HealthResponse(
-    val status: String,
-    val device: String,
-)
+internal data class HealthResponse(val status: String, val device: String)
 
 @Serializable
-internal data class CurlResponse(
-    val curl: String,
-)
+internal data class CurlResponse(val curl: String)
 
 @Serializable
-internal data class ClearResponse(
-    val cleared: Boolean,
-)
+internal data class ClearResponse(val cleared: Boolean)
 
 @Serializable
-internal data class WsCallUpdatedEvent(
-    val type: String = "call_updated",
-    val call: NetworkCallDto,
-)
+internal data class WsCallUpdatedEvent(val type: String = "call_updated", val call: NetworkCallDto)

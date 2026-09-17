@@ -10,10 +10,7 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 internal class NetworkDebugRepositoryTest : NetworkDebugRepositoryTestBase() {
-    override fun createRepository(
-        config: ProbeCaptureLimits,
-        scope: CoroutineScope,
-    ): NetworkDebugRepository {
+    override fun createRepository(config: ProbeCaptureLimits, scope: CoroutineScope): NetworkDebugRepository {
         val database = createTestProbeDatabase()
         return NetworkDebugRepository(
             dao = database.networkCallDao(),

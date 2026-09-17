@@ -36,13 +36,12 @@ private suspend fun knownPermissionRows(controller: PermissionDevActionsControll
         PermissionRow(id = known.id, label = known.label, state = controller.statusOf(known.id))
     }
 
-private fun PermissionState.displayLabel(): String =
-    when (this) {
-        PermissionState.Granted -> "Granted"
-        PermissionState.Denied -> "Denied"
-        PermissionState.NotDetermined -> "Not requested"
-        PermissionState.Unsupported -> "Not declared by host app"
-    }
+private fun PermissionState.displayLabel(): String = when (this) {
+    PermissionState.Granted -> "Granted"
+    PermissionState.Denied -> "Denied"
+    PermissionState.NotDetermined -> "Not requested"
+    PermissionState.Unsupported -> "Not declared by host app"
+}
 
 @Composable
 private fun PermissionState.displayColor(): Color {
@@ -57,11 +56,7 @@ private fun PermissionState.displayColor(): Color {
 
 /** Full sheet: live permission matrix + per-row request action + "Open Settings" footer. */
 @Composable
-internal fun PermissionDevPanel(
-    isVisible: MutableState<Boolean>,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun PermissionDevPanel(isVisible: MutableState<Boolean>, onBack: () -> Unit, modifier: Modifier = Modifier) {
     val controller = rememberPermissionDevActionsController()
     var rows by remember { mutableStateOf<List<PermissionRow>>(emptyList()) }
     val scope = rememberCoroutineScope()
@@ -102,10 +97,7 @@ internal fun PermissionDevPanel(
 
 /** Presentational list — split out from [PermissionDevPanel] so it can be previewed without a controller. */
 @Composable
-internal fun PermissionDevPanelContent(
-    rows: List<PermissionRow>,
-    onRequest: (String) -> Unit,
-) {
+internal fun PermissionDevPanelContent(rows: List<PermissionRow>, onRequest: (String) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -120,10 +112,7 @@ internal fun PermissionDevPanelContent(
 }
 
 @Composable
-private fun PermissionDevPanelRow(
-    row: PermissionRow,
-    onRequest: (String) -> Unit,
-) {
+private fun PermissionDevPanelRow(row: PermissionRow, onRequest: (String) -> Unit) {
     val typography = LocalProbeTypography.current
     val colors = LocalProbeColors.current
     Row(
@@ -162,19 +151,19 @@ private fun PermissionDevPanelContentPreview() {
     ProbeBackgroundPreviewContainer {
         PermissionDevPanelContent(
             rows =
-                listOf(
-                    PermissionRow(
-                        id = "notifications",
-                        label = "Notifications",
-                        state = PermissionState.Granted,
-                    ),
-                    PermissionRow(id = "camera", label = "Camera", state = PermissionState.Denied),
-                    PermissionRow(
-                        id = "location",
-                        label = "Location",
-                        state = PermissionState.NotDetermined,
-                    ),
+            listOf(
+                PermissionRow(
+                    id = "notifications",
+                    label = "Notifications",
+                    state = PermissionState.Granted,
                 ),
+                PermissionRow(id = "camera", label = "Camera", state = PermissionState.Denied),
+                PermissionRow(
+                    id = "location",
+                    label = "Location",
+                    state = PermissionState.NotDetermined,
+                ),
+            ),
             onRequest = {},
         )
     }

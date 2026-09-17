@@ -8,6 +8,12 @@ import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
 import com.dev.probe.browser.BrowserConnectionInfo
 import com.dev.probe.internal.ProbePlatformHolder
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -15,12 +21,6 @@ import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeRuntimeTest {

@@ -9,7 +9,4 @@ package com.dev.probe.api
  * This is intentionally the *only* configuration mechanism the library exposes — don't add a
  * second, competing one alongside it.
  */
-data class ProbeConfig(
-    val isEnabled: () -> Boolean,
-    val themeOverride: ProbeThemeOverride? = null,
-)
+data class ProbeConfig(val isEnabled: () -> Boolean, val themeOverride: ProbeThemeOverride? = null)

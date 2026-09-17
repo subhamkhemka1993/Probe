@@ -24,38 +24,37 @@ import platform.posix.sockaddr_in
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual class LocalAddressProvider actual constructor() : BrowserAddressProvider {
-    actual override fun wifiIpAddress(): String? =
-        memScoped {
-            val interfaces = alloc<CPointerVar<ifaddrs>>()
-            if (getifaddrs(interfaces.ptr) != 0) return@memScoped null
+    actual override fun wifiIpAddress(): String? = memScoped {
+        val interfaces = alloc<CPointerVar<ifaddrs>>()
+        if (getifaddrs(interfaces.ptr) != 0) return@memScoped null
 
-            try {
-                var currentInterface = interfaces.value
-                while (currentInterface != null) {
-                    val interfaceData = currentInterface.pointed
-                    val interfaceName = interfaceData.ifa_name?.toKString()
-                    val socketAddress = interfaceData.ifa_addr?.pointed
+        try {
+            var currentInterface = interfaces.value
+            while (currentInterface != null) {
+                val interfaceData = currentInterface.pointed
+                val interfaceName = interfaceData.ifa_name?.toKString()
+                val socketAddress = interfaceData.ifa_addr?.pointed
 
-                    if (interfaceName == WIFI_INTERFACE_NAME &&
-                        socketAddress != null &&
-                        socketAddress.sa_family.toInt() == AF_INET
-                    ) {
-                        val internetAddress =
-                            interfaceData.ifa_addr!!
-                                .reinterpret<sockaddr_in>()
-                                .pointed
-                        val address = internetAddress.ipv4String()
-                        if (address != null) return@memScoped address
-                    }
-
-                    currentInterface = interfaceData.ifa_next
+                if (interfaceName == WIFI_INTERFACE_NAME &&
+                    socketAddress != null &&
+                    socketAddress.sa_family.toInt() == AF_INET
+                ) {
+                    val internetAddress =
+                        interfaceData.ifa_addr!!
+                            .reinterpret<sockaddr_in>()
+                            .pointed
+                    val address = internetAddress.ipv4String()
+                    if (address != null) return@memScoped address
                 }
 
-                null
-            } finally {
-                freeifaddrs(interfaces.value)
+                currentInterface = interfaceData.ifa_next
             }
+
+            null
+        } finally {
+            freeifaddrs(interfaces.value)
         }
+    }
 
     actual override fun isEmulator(): Boolean = false
 

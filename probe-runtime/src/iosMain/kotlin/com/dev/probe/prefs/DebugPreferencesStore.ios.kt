@@ -9,10 +9,9 @@ import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 
-internal fun createDebugPreferencesDataStore(): DataStore<Preferences> =
-    PreferenceDataStoreFactory.createWithPath(
-        produceFile = { debugPreferencesFilePath().toPath() },
-    )
+internal fun createDebugPreferencesDataStore(): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(
+    produceFile = { debugPreferencesFilePath().toPath() },
+)
 
 @OptIn(ExperimentalForeignApi::class)
 private fun debugPreferencesFilePath(): String {

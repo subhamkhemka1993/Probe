@@ -64,12 +64,11 @@ internal class BrowserWebSocketSessions(
         }
     }
 
-    private suspend fun drain(): List<DefaultWebSocketServerSession> =
-        mutex.withLock {
-            sessions.toList().also {
-                sessions.clear()
-            }
+    private suspend fun drain(): List<DefaultWebSocketServerSession> = mutex.withLock {
+        sessions.toList().also {
+            sessions.clear()
         }
+    }
 
     private suspend fun snapshot(): List<DefaultWebSocketServerSession> = mutex.withLock { sessions.toList() }
 

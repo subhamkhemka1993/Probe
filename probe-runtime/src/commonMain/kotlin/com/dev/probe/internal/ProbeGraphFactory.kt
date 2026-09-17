@@ -19,11 +19,7 @@ import com.dev.probe.session.DebugSessionManager
 import kotlinx.coroutines.CoroutineScope
 
 internal object ProbeGraphFactory {
-    fun create(
-        config: ProbeConfig,
-        platform: ProbePlatformContext,
-        scope: CoroutineScope,
-    ): ProbeServices {
+    fun create(config: ProbeConfig, platform: ProbePlatformContext, scope: CoroutineScope): ProbeServices {
         val database = createDatabase(platform)
         val dao = database.networkCallDao()
         val sessionManager = DebugSessionManager(database.debugSessionDao(), dao)

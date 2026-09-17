@@ -68,9 +68,9 @@ internal fun NetworkListContent(
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(all = 8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -83,9 +83,9 @@ internal fun NetworkListContent(
 
             Column(
                 modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(start = 4.dp),
+                Modifier
+                    .weight(1f)
+                    .padding(start = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
@@ -95,11 +95,11 @@ internal fun NetworkListContent(
                 )
                 Text(
                     text =
-                        when (calls.size) {
-                            0 -> "No requests"
-                            1 -> "1 request"
-                            else -> "${calls.size} requests"
-                        },
+                    when (calls.size) {
+                        0 -> "No requests"
+                        1 -> "1 request"
+                        else -> "${calls.size} requests"
+                    },
                     style = typography.labelMedium,
                     color = colors.textSecondary,
                 )
@@ -127,9 +127,9 @@ internal fun NetworkListContent(
             onValueChange = onSearchQueryChange,
             onDone = { },
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
             placeholder = "Search URL, path, status…",
         )
 
@@ -137,11 +137,11 @@ internal fun NetworkListContent(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 NetworkEmptyState(
                     message =
-                        if (searchQuery.isBlank()) {
-                            "No requests captured yet"
-                        } else {
-                            "No matching requests"
-                        },
+                    if (searchQuery.isBlank()) {
+                        "No requests captured yet"
+                    } else {
+                        "No matching requests"
+                    },
                 )
             }
             return@Column
@@ -167,11 +167,7 @@ internal fun NetworkListContent(
  * `ProbeCaptureLimits.maxEntries` at the query level, so no separate size guard is needed here.
  */
 @Composable
-private fun ExportSessionSheet(
-    isVisible: MutableState<Boolean>,
-    calls: List<NetworkCall>,
-    modifier: Modifier = Modifier,
-) {
+private fun ExportSessionSheet(isVisible: MutableState<Boolean>, calls: List<NetworkCall>, modifier: Modifier = Modifier) {
     if (!isVisible.value) return
 
     ProbeBottomSheet(
@@ -184,18 +180,18 @@ private fun ExportSessionSheet(
         ExportFormat.entries.forEachIndexed { index, format ->
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .probeClickable(
-                            onClick = {
-                                shareFile(
-                                    fileName = format.exportFileName(),
-                                    content = SessionExporter.export(calls, format),
-                                    mimeType = format.exportMimeType(),
-                                )
-                                isVisible.value = false
-                            },
-                        ).padding(vertical = 4.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .probeClickable(
+                        onClick = {
+                            shareFile(
+                                fileName = format.exportFileName(),
+                                content = SessionExporter.export(calls, format),
+                                mimeType = format.exportMimeType(),
+                            )
+                            isVisible.value = false
+                        },
+                    ).padding(vertical = 4.dp),
             ) {
                 ProbeListLabel(title = format.exportLabel(), subtitle = format.exportSubtitle())
             }
@@ -206,33 +202,29 @@ private fun ExportSessionSheet(
     }
 }
 
-private fun ExportFormat.exportLabel(): String =
-    when (this) {
-        ExportFormat.JSON -> "JSON"
-        ExportFormat.HAR -> "HAR"
-        ExportFormat.CURL_BUNDLE -> "cURL bundle"
-    }
+private fun ExportFormat.exportLabel(): String = when (this) {
+    ExportFormat.JSON -> "JSON"
+    ExportFormat.HAR -> "HAR"
+    ExportFormat.CURL_BUNDLE -> "cURL bundle"
+}
 
-private fun ExportFormat.exportSubtitle(): String =
-    when (this) {
-        ExportFormat.JSON -> "Structured request/response list"
-        ExportFormat.HAR -> "Import into Chrome DevTools or Charles"
-        ExportFormat.CURL_BUNDLE -> "Reproducible curl commands, one per call"
-    }
+private fun ExportFormat.exportSubtitle(): String = when (this) {
+    ExportFormat.JSON -> "Structured request/response list"
+    ExportFormat.HAR -> "Import into Chrome DevTools or Charles"
+    ExportFormat.CURL_BUNDLE -> "Reproducible curl commands, one per call"
+}
 
-private fun ExportFormat.exportMimeType(): String =
-    when (this) {
-        ExportFormat.JSON -> "application/json"
-        ExportFormat.HAR -> "application/json"
-        ExportFormat.CURL_BUNDLE -> "text/plain"
-    }
+private fun ExportFormat.exportMimeType(): String = when (this) {
+    ExportFormat.JSON -> "application/json"
+    ExportFormat.HAR -> "application/json"
+    ExportFormat.CURL_BUNDLE -> "text/plain"
+}
 
-private fun ExportFormat.exportFileExtension(): String =
-    when (this) {
-        ExportFormat.JSON -> "json"
-        ExportFormat.HAR -> "har"
-        ExportFormat.CURL_BUNDLE -> "txt"
-    }
+private fun ExportFormat.exportFileExtension(): String = when (this) {
+    ExportFormat.JSON -> "json"
+    ExportFormat.HAR -> "har"
+    ExportFormat.CURL_BUNDLE -> "txt"
+}
 
 private fun ExportFormat.exportFileName(): String = "probe-session-${Clock.System.now().toEpochMilliseconds()}.${exportFileExtension()}"
 
@@ -285,10 +277,7 @@ private fun NetworkListContentFilteredPreview() {
 }
 
 @Composable
-private fun NetworkCallRow(
-    call: NetworkCall,
-    onClick: () -> Unit,
-) {
+private fun NetworkCallRow(call: NetworkCall, onClick: () -> Unit) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     val status = call.statusPresentation()
@@ -316,9 +305,9 @@ private fun NetworkCallRow(
 
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {

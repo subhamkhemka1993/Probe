@@ -15,6 +15,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteChannel
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -22,9 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Exercises [NetworkDebugClientPlugin] through a real Ktor request pipeline: a [MockEngine]-backed
@@ -37,40 +37,37 @@ internal class NetworkDebugPluginTest {
         scope: CoroutineScope,
         config: ProbeCaptureLimits = ProbeCaptureLimits(),
         sessionManager: DebugSessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao),
-    ): NetworkDebugRepository =
-        NetworkDebugRepository(
-            dao = dao,
-            config = config,
-            scope = scope,
-            sessionManager = sessionManager,
-        )
+    ): NetworkDebugRepository = NetworkDebugRepository(
+        dao = dao,
+        config = config,
+        scope = scope,
+        sessionManager = sessionManager,
+    )
 
     private fun createClient(
         repository: NetworkDebugRepository,
         scope: CoroutineScope,
         sessionManager: DebugSessionManager,
         engine: MockEngine = MockEngine { respond("ok", HttpStatusCode.OK) },
-    ): HttpClient =
-        HttpClient(engine) {
-            install(NetworkDebugClientPlugin) {
-                this.repository = repository
-                this.scope = scope
-                this.sessionManager = sessionManager
-            }
+    ): HttpClient = HttpClient(engine) {
+        install(NetworkDebugClientPlugin) {
+            this.repository = repository
+            this.scope = scope
+            this.sessionManager = sessionManager
         }
+    }
 
     @Test
-    fun requestSucceedsEvenWhenInsertPendingThrows() =
-        runTest {
-            val dao = InMemoryNetworkCallDao().apply { throwOnNextInsert = true }
-            val sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao)
-            val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
-            val client = createClient(repository, scope = this, sessionManager = sessionManager)
+    fun requestSucceedsEvenWhenInsertPendingThrows() = runTest {
+        val dao = InMemoryNetworkCallDao().apply { throwOnNextInsert = true }
+        val sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao)
+        val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
+        val client = createClient(repository, scope = this, sessionManager = sessionManager)
 
-            val response: HttpResponse = client.get("https://api.example.com/test")
+        val response: HttpResponse = client.get("https://api.example.com/test")
 
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
 
     /**
      * Reproduces the cold-start capture race: [DebugSessionManager.ensureInitialSession] is held
@@ -80,42 +77,41 @@ internal class NetworkDebugPluginTest {
      * while the session bootstrap is still in flight, then release it to let bootstrap finish.
      */
     @Test
-    fun firstRequestAfterColdStartGetsRealSessionId() =
-        runTest {
-            val dao = InMemoryNetworkCallDao()
-            val sessionInsertGate = CompletableDeferred<Unit>()
-            val sessionManager =
-                DebugSessionManager(
-                    FirstInsertGatedDebugSessionDao(InMemoryDebugSessionDao(), sessionInsertGate),
-                    dao,
-                )
-            val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
-            val hook =
-                NetworkDebugHook(
-                    repository = repository,
-                    debugConfig = ProbeCaptureLimits(),
-                    sessionManager = sessionManager,
-                    scope = this,
-                )
-            val client =
-                HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }) {
-                    with(hook) { install() }
-                }
+    fun firstRequestAfterColdStartGetsRealSessionId() = runTest {
+        val dao = InMemoryNetworkCallDao()
+        val sessionInsertGate = CompletableDeferred<Unit>()
+        val sessionManager =
+            DebugSessionManager(
+                FirstInsertGatedDebugSessionDao(InMemoryDebugSessionDao(), sessionInsertGate),
+                dao,
+            )
+        val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
+        val hook =
+            NetworkDebugHook(
+                repository = repository,
+                debugConfig = ProbeCaptureLimits(),
+                sessionManager = sessionManager,
+                scope = this,
+            )
+        val client =
+            HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }) {
+                with(hook) { install() }
+            }
 
-            val requestJob = launch { client.get("https://api.example.com/test") }
-            runCurrent()
+        val requestJob = launch { client.get("https://api.example.com/test") }
+        runCurrent()
 
-            sessionInsertGate.complete(Unit)
-            advanceUntilIdle()
-            requestJob.join()
+        sessionInsertGate.complete(Unit)
+        advanceUntilIdle()
+        requestJob.join()
 
-            val resolvedSessionId = sessionManager.activeSession().value.id
-            val pendingRows = dao.observeSearch(sessionId = "pending", query = "", limit = 10).first()
-            val resolvedRows = dao.observeSearch(sessionId = resolvedSessionId, query = "", limit = 10).first()
+        val resolvedSessionId = sessionManager.activeSession().value.id
+        val pendingRows = dao.observeSearch(sessionId = "pending", query = "", limit = 10).first()
+        val resolvedRows = dao.observeSearch(sessionId = resolvedSessionId, query = "", limit = 10).first()
 
-            assertTrue(pendingRows.isEmpty(), "captured call must not be stored under the pending session sentinel")
-            assertEquals(1, resolvedRows.size)
-        }
+        assertTrue(pendingRows.isEmpty(), "captured call must not be stored under the pending session sentinel")
+        assertEquals(1, resolvedRows.size)
+    }
 
     /**
      * Mirrors [requestSucceedsEvenWhenInsertPendingThrows]: the `sessionManager.ensureInitialSession()`
@@ -124,21 +120,20 @@ internal class NetworkDebugPluginTest {
      * must not propagate out of `on(Send)` and fail the real HTTP request.
      */
     @Test
-    fun requestSucceedsEvenWhenSessionBootstrapThrows() =
-        runTest {
-            val dao = InMemoryNetworkCallDao()
-            val sessionManager =
-                DebugSessionManager(
-                    InMemoryDebugSessionDao().apply { throwOnNextInsert = true },
-                    dao,
-                )
-            val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
-            val client = createClient(repository, scope = this, sessionManager = sessionManager)
+    fun requestSucceedsEvenWhenSessionBootstrapThrows() = runTest {
+        val dao = InMemoryNetworkCallDao()
+        val sessionManager =
+            DebugSessionManager(
+                InMemoryDebugSessionDao().apply { throwOnNextInsert = true },
+                dao,
+            )
+        val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
+        val client = createClient(repository, scope = this, sessionManager = sessionManager)
 
-            val response: HttpResponse = client.get("https://api.example.com/test")
+        val response: HttpResponse = client.get("https://api.example.com/test")
 
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
+        assertEquals(HttpStatusCode.OK, response.status)
+    }
 
     /**
      * Proves the binary content-type check runs in `on(Send)` ahead of [io.ktor.client.call.save]
@@ -154,34 +149,33 @@ internal class NetworkDebugPluginTest {
      * as `"[binary body omitted]"`, is only possible if that body was never read.
      */
     @Test
-    fun binaryResponseIsNotBufferedBeforeContentTypeCheck() =
-        runTest {
-            val dao = InMemoryNetworkCallDao()
-            val sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao)
-            val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
-            val unreadableBody =
-                ByteChannel().apply {
-                    cancel(IllegalStateException("binary response body must never be read by the debug plugin"))
-                }
-            val engine =
-                MockEngine {
-                    respond(
-                        content = unreadableBody,
-                        status = HttpStatusCode.OK,
-                        headers = headersOf(HttpHeaders.ContentType, "application/pdf"),
-                    )
-                }
-            val client = createClient(repository, scope = this, sessionManager = sessionManager, engine = engine)
+    fun binaryResponseIsNotBufferedBeforeContentTypeCheck() = runTest {
+        val dao = InMemoryNetworkCallDao()
+        val sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), dao)
+        val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
+        val unreadableBody =
+            ByteChannel().apply {
+                cancel(IllegalStateException("binary response body must never be read by the debug plugin"))
+            }
+        val engine =
+            MockEngine {
+                respond(
+                    content = unreadableBody,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/pdf"),
+                )
+            }
+        val client = createClient(repository, scope = this, sessionManager = sessionManager, engine = engine)
 
-            val status = client.prepareGet("https://api.example.com/file.pdf").execute { response -> response.status }
-            advanceUntilIdle()
+        val status = client.prepareGet("https://api.example.com/file.pdf").execute { response -> response.status }
+        advanceUntilIdle()
 
-            assertEquals(HttpStatusCode.OK, status)
-            val sessionId = sessionManager.activeSession().value.id
-            val rows = dao.observeSearch(sessionId = sessionId, query = "", limit = 10).first()
-            assertEquals(1, rows.size)
-            assertEquals("[binary body omitted]", rows.first().responseBody)
-        }
+        assertEquals(HttpStatusCode.OK, status)
+        val sessionId = sessionManager.activeSession().value.id
+        val rows = dao.observeSearch(sessionId = sessionId, query = "", limit = 10).first()
+        assertEquals(1, rows.size)
+        assertEquals("[binary body omitted]", rows.first().responseBody)
+    }
 
     /**
      * `runCatching { sessionManager.ensureInitialSession() }` must rethrow a
@@ -191,48 +185,45 @@ internal class NetworkDebugPluginTest {
      * row despite the caller having already given up on the request.
      */
     @Test
-    fun cancellingWhileSessionBootstrapIsInFlightPropagatesCancellation() =
-        runTest {
-            val dao = InMemoryNetworkCallDao()
-            val sessionGate = CompletableDeferred<Unit>()
-            val sessionManager =
-                DebugSessionManager(
-                    FirstInsertGatedDebugSessionDao(InMemoryDebugSessionDao(), sessionGate),
-                    dao,
-                )
-            val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
-            val hook =
-                NetworkDebugHook(
-                    repository = repository,
-                    debugConfig = ProbeCaptureLimits(),
-                    sessionManager = sessionManager,
-                    scope = this,
-                )
-            val client =
-                HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }) {
-                    with(hook) { install() }
-                }
+    fun cancellingWhileSessionBootstrapIsInFlightPropagatesCancellation() = runTest {
+        val dao = InMemoryNetworkCallDao()
+        val sessionGate = CompletableDeferred<Unit>()
+        val sessionManager =
+            DebugSessionManager(
+                FirstInsertGatedDebugSessionDao(InMemoryDebugSessionDao(), sessionGate),
+                dao,
+            )
+        val repository = createRepository(dao, scope = this, sessionManager = sessionManager)
+        val hook =
+            NetworkDebugHook(
+                repository = repository,
+                debugConfig = ProbeCaptureLimits(),
+                sessionManager = sessionManager,
+                scope = this,
+            )
+        val client =
+            HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }) {
+                with(hook) { install() }
+            }
 
-            val requestJob = launch { client.get("https://api.example.com/test") }
-            runCurrent() // let the request suspend inside ensureInitialSession(), waiting on sessionGate
+        val requestJob = launch { client.get("https://api.example.com/test") }
+        runCurrent() // let the request suspend inside ensureInitialSession(), waiting on sessionGate
 
-            requestJob.cancel()
-            advanceUntilIdle()
+        requestJob.cancel()
+        advanceUntilIdle()
 
-            assertTrue(requestJob.isCancelled)
-            val pendingRows = dao.observeSearch(sessionId = "pending", query = "", limit = 10).first()
-            assertTrue(pendingRows.isEmpty(), "a cancelled request must never store a pending capture row")
-        }
+        assertTrue(requestJob.isCancelled)
+        val pendingRows = dao.observeSearch(sessionId = "pending", query = "", limit = 10).first()
+        assertTrue(pendingRows.isEmpty(), "a cancelled request must never store a pending capture row")
+    }
 }
 
 /**
  * [DebugSessionDao] wrapper whose first [insert] suspends on [gate], letting a test hold
  * [DebugSessionManager.ensureInitialSession] open long enough to observe requests racing ahead of it.
  */
-private class FirstInsertGatedDebugSessionDao(
-    private val delegate: DebugSessionDao,
-    private val gate: CompletableDeferred<Unit>,
-) : DebugSessionDao by delegate {
+private class FirstInsertGatedDebugSessionDao(private val delegate: DebugSessionDao, private val gate: CompletableDeferred<Unit>) :
+    DebugSessionDao by delegate {
     private var hasGatedFirstInsert = false
 
     override suspend fun insert(session: DebugSessionEntity) {

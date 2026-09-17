@@ -34,6 +34,14 @@ kotlin {
         }
         withHostTestBuilder {
         }
+        lint {
+            xmlReport = true
+            sarifReport = true
+            checkDependencies = true
+            disable += "GradleDependency"
+            disable += "RestrictedApi"
+            baseline = file("lint-baseline.xml")
+        }
     }
 
     iosArm64()

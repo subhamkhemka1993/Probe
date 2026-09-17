@@ -5,10 +5,7 @@ import com.dev.probe.session.DebugSessionManager
 import kotlinx.coroutines.CoroutineScope
 
 internal class NetworkDebugRepositoryTest : NetworkDebugRepositoryTestBase() {
-    override fun createRepository(
-        config: ProbeCaptureLimits,
-        scope: CoroutineScope,
-    ): NetworkDebugRepository {
+    override fun createRepository(config: ProbeCaptureLimits, scope: CoroutineScope): NetworkDebugRepository {
         val database = createTestProbeDatabase()
         return NetworkDebugRepository(
             dao = database.networkCallDao(),

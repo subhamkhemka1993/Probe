@@ -30,10 +30,7 @@ internal object ProbeNotificationPoster {
         )
     }
 
-    fun post(
-        context: Context,
-        state: ProbeNotifierState,
-    ) {
+    fun post(context: Context, state: ProbeNotifierState) {
         ensureChannel(context)
         val notification =
             NotificationCompat
@@ -54,10 +51,7 @@ internal object ProbeNotificationPoster {
         NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
     }
 
-    private fun tapPendingIntent(
-        context: Context,
-        screen: ProbeStartScreen,
-    ): PendingIntent {
+    private fun tapPendingIntent(context: Context, screen: ProbeStartScreen): PendingIntent {
         val intent =
             Intent(context, ProbeActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -8,11 +8,7 @@ import java.io.File
 
 private const val PROBE_EXPORT_DIR_NAME = "probe_exports"
 
-internal actual fun shareFile(
-    fileName: String,
-    content: String,
-    mimeType: String,
-) {
+internal actual fun shareFile(fileName: String, content: String, mimeType: String) {
     val platform = ProbePlatformHolder.requirePlatform() as ProbePlatformContext
     val context = platform.context
 

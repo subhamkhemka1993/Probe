@@ -11,13 +11,9 @@ internal sealed class ClearDataResult {
     data object FullResetTriggered : ClearDataResult()
 
     /** iOS: no OS-level full reset exists; lists what was actually cleared. */
-    data class PartialClear(
-        val clearedItems: List<String>,
-    ) : ClearDataResult()
+    data class PartialClear(val clearedItems: List<String>) : ClearDataResult()
 
-    data class Failed(
-        val reason: String,
-    ) : ClearDataResult()
+    data class Failed(val reason: String) : ClearDataResult()
 }
 
 /**

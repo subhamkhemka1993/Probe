@@ -10,23 +10,21 @@ plugins {
     alias(libs.plugins.kotlinSerialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room) apply false
-    alias(libs.plugins.detekt) apply false
-    alias(libs.plugins.ktlintGradle) apply false
+    alias(libs.plugins.spotless) apply false
 }
 
 subprojects {
-    apply(plugin = "io.gitlab.arturbosch.detekt")
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    apply(plugin = "com.diffplug.spotless")
 
-    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
-        buildUponDefaultConfig = true
-        autoCorrect = true
-        source.setFrom("src")
-        config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
-        baseline = file("$rootDir/config/detekt/baseline-${project.name}.xml")
-    }
-
-    extensions.configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        version.set("1.5.0")
+    extensions.configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("src/**/*.kt")
+            targetExclude("${layout.buildDirectory.get()}/**/*.kt")
+            ktlint(libs.versions.ktlint.get())
+        }
+        kotlinGradle {
+            target("*.gradle.kts")
+            ktlint(libs.versions.ktlint.get())
+        }
     }
 }

@@ -20,22 +20,13 @@ internal object HarWriter {
 }
 
 @Serializable
-internal data class HarLog(
-    val log: HarLogBody,
-)
+internal data class HarLog(val log: HarLogBody)
 
 @Serializable
-internal data class HarLogBody(
-    val version: String = "1.2",
-    val creator: HarCreator = HarCreator(),
-    val entries: List<HarEntry>,
-)
+internal data class HarLogBody(val version: String = "1.2", val creator: HarCreator = HarCreator(), val entries: List<HarEntry>)
 
 @Serializable
-internal data class HarCreator(
-    val name: String = "Probe",
-    val version: String = "1.0",
-)
+internal data class HarCreator(val name: String = "Probe", val version: String = "1.0")
 
 @Serializable
 internal data class HarEntry(
@@ -51,11 +42,7 @@ internal data class HarEntry(
 internal class HarCache
 
 @Serializable
-internal data class HarTimings(
-    val send: Long = 0,
-    val wait: Long,
-    val receive: Long = 0,
-)
+internal data class HarTimings(val send: Long = 0, val wait: Long, val receive: Long = 0)
 
 @Serializable
 internal data class HarRequest(
@@ -82,29 +69,16 @@ internal data class HarResponse(
 )
 
 @Serializable
-internal data class HarHeader(
-    val name: String,
-    val value: String,
-)
+internal data class HarHeader(val name: String, val value: String)
 
 @Serializable
-internal data class HarQueryParam(
-    val name: String,
-    val value: String,
-)
+internal data class HarQueryParam(val name: String, val value: String)
 
 @Serializable
-internal data class HarPostData(
-    val mimeType: String,
-    val text: String,
-)
+internal data class HarPostData(val mimeType: String, val text: String)
 
 @Serializable
-internal data class HarContent(
-    val size: Int,
-    val mimeType: String = "application/json",
-    val text: String? = null,
-)
+internal data class HarContent(val size: Int, val mimeType: String = "application/json", val text: String? = null)
 
 private fun NetworkCall.toHarEntry(): HarEntry {
     val redactedRequestHeaders = redactHeaders(requestHeaders)
@@ -114,40 +88,40 @@ private fun NetworkCall.toHarEntry(): HarEntry {
         startedDateTime = Instant.fromEpochMilliseconds(timestampMillis).toString(),
         time = duration,
         request =
-            HarRequest(
-                method = method,
-                url = url,
-                headers = redactedRequestHeaders.toHarHeaders(),
-                queryString = query.toHarQueryParams(),
-                postData =
-                    requestBody?.takeIf { it.isNotEmpty() }?.let { body ->
-                        HarPostData(mimeType = redactedRequestHeaders.contentType(), text = body)
-                    },
-            ),
+        HarRequest(
+            method = method,
+            url = url,
+            headers = redactedRequestHeaders.toHarHeaders(),
+            queryString = query.toHarQueryParams(),
+            postData =
+            requestBody?.takeIf { it.isNotEmpty() }?.let { body ->
+                HarPostData(mimeType = redactedRequestHeaders.contentType(), text = body)
+            },
+        ),
         response =
-            HarResponse(
-                status = responseStatus ?: 0,
-                headers = redactedResponseHeaders.toHarHeaders(),
-                content = HarContent(size = responseBody?.length ?: 0, text = responseBody),
-            ),
+        HarResponse(
+            status = responseStatus ?: 0,
+            headers = redactedResponseHeaders.toHarHeaders(),
+            content = HarContent(size = responseBody?.length ?: 0, text = responseBody),
+        ),
         timings = HarTimings(wait = duration),
     )
 }
 
 private fun Map<String, String>.toHarHeaders(): List<HarHeader> = map { (name, value) -> HarHeader(name, value) }
 
-private fun Map<String, String>.contentType(): String = entries.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }?.value ?: "text/plain"
+private fun Map<String, String>.contentType(): String =
+    entries.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }?.value ?: "text/plain"
 
-private fun String?.toHarQueryParams(): List<HarQueryParam> =
-    this
-        ?.split("&")
-        ?.filter { it.isNotEmpty() }
-        ?.map { param ->
-            val separatorIndex = param.indexOf("=")
-            if (separatorIndex == -1) {
-                HarQueryParam(name = param, value = "")
-            } else {
-                HarQueryParam(name = param.substring(0, separatorIndex), value = param.substring(separatorIndex + 1))
-            }
+private fun String?.toHarQueryParams(): List<HarQueryParam> = this
+    ?.split("&")
+    ?.filter { it.isNotEmpty() }
+    ?.map { param ->
+        val separatorIndex = param.indexOf("=")
+        if (separatorIndex == -1) {
+            HarQueryParam(name = param, value = "")
+        } else {
+            HarQueryParam(name = param.substring(0, separatorIndex), value = param.substring(separatorIndex + 1))
         }
-        ?: emptyList()
+    }
+    ?: emptyList()

@@ -27,16 +27,16 @@ import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.close
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 
 internal class NetworkBrowserServer(
     private val config: NetworkBrowserConfig,
@@ -61,10 +61,7 @@ internal class NetworkBrowserServer(
      * that narrow rotation path; the primary shutdown path (`NetworkOutputController.applyMode` ->
      * [NetworkBrowserController.stop] -> [stop]) is the one made truly non-blocking.
      */
-    fun start(
-        onStarted: (BrowserSession) -> Unit,
-        onError: (Throwable) -> Unit,
-    ) {
+    fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit) {
         val nowMillis = Clock.System.now().toEpochMilliseconds()
         val existingEngine = engine
         val existingSession = session
@@ -216,15 +213,14 @@ internal class NetworkBrowserServer(
      * inherited (non-deprecated) [io.ktor.util.pipeline.PipelineContext.finish] keeps the original
      * short-circuiting behavior.
      */
-    private fun apiAuthPlugin() =
-        createRouteScopedPlugin("ApiAuth") {
-            checkNotNull(route) { "apiAuthPlugin must be installed on a route" }
-                .intercept(ApplicationCallPipeline.Call) {
-                    if (!call.authorize()) {
-                        finish()
-                    }
+    private fun apiAuthPlugin() = createRouteScopedPlugin("ApiAuth") {
+        checkNotNull(route) { "apiAuthPlugin must be installed on a route" }
+            .intercept(ApplicationCallPipeline.Call) {
+                if (!call.authorize()) {
+                    finish()
                 }
-        }
+            }
+    }
 
     private suspend fun ApplicationCall.authorize(): Boolean {
         if (isAuthorized()) return true
@@ -233,13 +229,12 @@ internal class NetworkBrowserServer(
         return false
     }
 
-    private fun ApplicationCall.isAuthorized(): Boolean =
-        NetworkBrowserAuth.isAuthorized(
-            session = session,
-            bearerToken = request.authorization(),
-            queryToken = request.queryParameters["token"],
-            nowMillis = Clock.System.now().toEpochMilliseconds(),
-        )
+    private fun ApplicationCall.isAuthorized(): Boolean = NetworkBrowserAuth.isAuthorized(
+        session = session,
+        bearerToken = request.authorization(),
+        queryToken = request.queryParameters["token"],
+        nowMillis = Clock.System.now().toEpochMilliseconds(),
+    )
 
     private fun createSession(ttlHours: Int): BrowserSession {
         val createdAtMillis = Clock.System.now().toEpochMilliseconds()
@@ -251,9 +246,7 @@ internal class NetworkBrowserServer(
     }
 
     @Serializable
-    private data class ErrorResponse(
-        val error: String,
-    )
+    private data class ErrorResponse(val error: String)
 
     private companion object {
         const val DEFAULT_LIST_LIMIT = 250
@@ -268,8 +261,7 @@ private val BindPolicy.host: String
             BindPolicy.LOOPBACK -> "127.0.0.1"
         }
 
-private fun String.exportContentType(): ContentType =
-    when (lowercase()) {
-        "curl" -> ContentType.Text.Plain
-        else -> ContentType.Application.Json
-    }
+private fun String.exportContentType(): ContentType = when (lowercase()) {
+    "curl" -> ContentType.Text.Plain
+    else -> ContentType.Application.Json
+}

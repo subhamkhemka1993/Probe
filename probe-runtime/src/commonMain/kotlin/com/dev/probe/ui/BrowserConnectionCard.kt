@@ -57,11 +57,11 @@ internal fun BrowserConnectionCard(
 
     Column(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(CardShape)
-                .background(colors.surface)
-                .padding(12.dp),
+        modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .background(colors.surface)
+            .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         when (connectionInfo) {
@@ -90,11 +90,7 @@ internal fun BrowserConnectionCard(
 }
 
 @Composable
-private fun BrowserConnectionMessage(
-    title: String,
-    subtitle: String,
-    tone: NetworkStatusTone,
-) {
+private fun BrowserConnectionMessage(title: String, subtitle: String, tone: NetworkStatusTone) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
 
@@ -169,10 +165,7 @@ internal fun BrowserConnectionInfo.Running.copyLinkUrl(): String = wifiUrl
  * Simulator, whereas this URL must stay available whenever [BrowserConnectionInfo.Running.emulatorUrl]
  * is non-null (i.e. on an Android emulator, where `isSimulator()` is always `false`).
  */
-internal fun emulatorDesktopUrl(
-    port: Int,
-    token: String,
-): String = "http://$EMULATOR_DESKTOP_LOOPBACK_HOST:$port/?token=$token"
+internal fun emulatorDesktopUrl(port: Int, token: String): String = "http://$EMULATOR_DESKTOP_LOOPBACK_HOST:$port/?token=$token"
 
 /**
  * The "Simulator" URL row is only relevant when there's no emulator accordion already covering
@@ -185,10 +178,7 @@ internal fun emulatorDesktopUrl(
 internal fun BrowserConnectionInfo.Running.showsSimulatorRow(): Boolean = emulatorUrl == null && simulatorUrl != null
 
 @Composable
-private fun EmulatorHelpAccordion(
-    adbCommand: String,
-    desktopUrl: String,
-) {
+private fun EmulatorHelpAccordion(adbCommand: String, desktopUrl: String) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     var expanded by remember { mutableStateOf(false) }
@@ -196,9 +186,9 @@ private fun EmulatorHelpAccordion(
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+            Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -218,9 +208,9 @@ private fun EmulatorHelpAccordion(
         if (expanded) {
             Column(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, top = 8.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
@@ -236,10 +226,7 @@ private fun EmulatorHelpAccordion(
 }
 
 @Composable
-private fun BrowserUrlRow(
-    label: String,
-    url: String,
-) {
+private fun BrowserUrlRow(label: String, url: String) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
 
@@ -284,13 +271,13 @@ private fun BrowserConnectionCardDevicePreview() {
     ProbeBackgroundPreviewContainer {
         BrowserConnectionCard(
             connectionInfo =
-                BrowserConnectionInfo.Running(
-                    port = 8765,
-                    token = "sample-token",
-                    wifiUrl = "http://192.168.1.12:8765/?token=sample-token",
-                    emulatorUrl = null,
-                    simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
-                ),
+            BrowserConnectionInfo.Running(
+                port = 8765,
+                token = "sample-token",
+                wifiUrl = "http://192.168.1.12:8765/?token=sample-token",
+                emulatorUrl = null,
+                simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
+            ),
             onCopyLink = {},
             onCopyToken = {},
         )
@@ -303,13 +290,13 @@ private fun BrowserConnectionCardEmulatorPreview() {
     ProbeBackgroundPreviewContainer {
         BrowserConnectionCard(
             connectionInfo =
-                BrowserConnectionInfo.Running(
-                    port = 8765,
-                    token = "sample-token",
-                    wifiUrl = "http://10.0.2.16:8765/?token=sample-token",
-                    emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
-                    simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
-                ),
+            BrowserConnectionInfo.Running(
+                port = 8765,
+                token = "sample-token",
+                wifiUrl = "http://10.0.2.16:8765/?token=sample-token",
+                emulatorUrl = "http://10.0.2.2:8765/?token=sample-token",
+                simulatorUrl = "http://127.0.0.1:8765/?token=sample-token",
+            ),
             onCopyLink = {},
             onCopyToken = {},
         )

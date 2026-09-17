@@ -25,6 +25,9 @@ import com.dev.probe.prefs.DebugPreferencesStore
 import com.dev.probe.session.DebugSessionManager
 import com.dev.probe.session.InMemoryDebugSessionDao
 import com.dev.probe.session.SessionRole
+import kotlin.test.assertEquals
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -34,9 +37,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
-import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 /**
  * [clearAppData] and [resetProbeRuntimeState] are tested independently here rather than through
@@ -51,64 +51,60 @@ class ClearAppDataTest {
     private val platform by lazy { ProbePlatformContext(application) }
 
     @Test
-    fun clearAppData_triggersFullResetViaActivityManager() =
-        runTest {
-            val result = clearAppData(platform)
+    fun clearAppData_triggersFullResetViaActivityManager() = runTest {
+        val result = clearAppData(platform)
 
-            assertIs<ClearDataResult.FullResetTriggered>(result)
-            val shadowActivityManager =
-                Shadows.shadowOf(
-                    application.getSystemService(ActivityManager::class.java),
-                )
-            assertTrue(shadowActivityManager.isApplicationUserDataCleared())
-        }
+        assertIs<ClearDataResult.FullResetTriggered>(result)
+        val shadowActivityManager =
+            Shadows.shadowOf(
+                application.getSystemService(ActivityManager::class.java),
+            )
+        assertTrue(shadowActivityManager.isApplicationUserDataCleared())
+    }
 
     @Test
-    fun resetProbeRuntimeState_endsSessionStopsBrowserAndHidesNotifier() =
-        runTest {
-            val callDao = InMemoryNetworkCallDao()
-            val sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), callDao)
-            sessionManager.ensureInitialSession()
+    fun resetProbeRuntimeState_endsSessionStopsBrowserAndHidesNotifier() = runTest {
+        val callDao = InMemoryNetworkCallDao()
+        val sessionManager = DebugSessionManager(InMemoryDebugSessionDao(), callDao)
+        sessionManager.ensureInitialSession()
 
-            val repository =
-                NetworkDebugRepository(
-                    dao = callDao,
-                    config = ProbeCaptureLimits(),
-                    scope = backgroundScope,
-                    sessionManager = sessionManager,
-                )
-            val browserController =
-                NetworkBrowserController(
-                    repository = repository,
-                    config = NetworkBrowserConfig(),
-                    addressProvider = FakeAddressProvider(),
-                    scope = backgroundScope,
-                    isEnabled = { true },
-                    serverFactory = { FakeBrowserServer() },
-                )
-            browserController.start()
+        val repository =
+            NetworkDebugRepository(
+                dao = callDao,
+                config = ProbeCaptureLimits(),
+                scope = backgroundScope,
+                sessionManager = sessionManager,
+            )
+        val browserController =
+            NetworkBrowserController(
+                repository = repository,
+                config = NetworkBrowserConfig(),
+                addressProvider = FakeAddressProvider(),
+                scope = backgroundScope,
+                isEnabled = { true },
+                serverFactory = { FakeBrowserServer() },
+            )
+        browserController.start()
 
-            val notifier = RecordingNotifier(platform)
-            val notifierBridge =
-                CaptureNotifierBridge(
-                    repository = repository,
-                    preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
-                    browserController = browserController,
-                    notifier = notifier,
-                    scope = backgroundScope,
-                )
+        val notifier = RecordingNotifier(platform)
+        val notifierBridge =
+            CaptureNotifierBridge(
+                repository = repository,
+                preferencesStore = DebugPreferencesStore(InMemoryPreferencesDataStore()),
+                browserController = browserController,
+                notifier = notifier,
+                scope = backgroundScope,
+            )
 
-            resetProbeRuntimeState(sessionManager, browserController, notifierBridge)
+        resetProbeRuntimeState(sessionManager, browserController, notifierBridge)
 
-            assertEquals(1, sessionManager.availableSessions().first().size)
-            assertEquals(SessionRole.CURRENT, sessionManager.activeSession().value.role)
-            assertIs<BrowserConnectionInfo.Stopped>(browserController.connectionInfo.value)
-            assertTrue(notifier.hideCalled)
-        }
+        assertEquals(1, sessionManager.availableSessions().first().size)
+        assertEquals(SessionRole.CURRENT, sessionManager.activeSession().value.role)
+        assertIs<BrowserConnectionInfo.Stopped>(browserController.connectionInfo.value)
+        assertTrue(notifier.hideCalled)
+    }
 
-    private class RecordingNotifier(
-        platform: ProbePlatformContext,
-    ) : ProbeNotifier(platform) {
+    private class RecordingNotifier(platform: ProbePlatformContext) : ProbeNotifier(platform) {
         var hideCalled = false
 
         override fun show(state: ProbeNotifierState) = Unit
@@ -129,10 +125,7 @@ class ClearAppDataTest {
     }
 
     private class FakeBrowserServer : BrowserServer {
-        override fun start(
-            onStarted: (BrowserSession) -> Unit,
-            onError: (Throwable) -> Unit,
-        ) {
+        override fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit) {
             onStarted(BrowserSession(token = "token-1", createdAtMillis = 0L, expiresAtMillis = Long.MAX_VALUE))
         }
 
@@ -162,11 +155,7 @@ class ClearAppDataTest {
 
         override suspend fun getById(id: String): NetworkCallEntity? = calls.value.firstOrNull { it.id == id }
 
-        override fun observeSearch(
-            sessionId: String,
-            query: String,
-            limit: Int,
-        ): Flow<List<NetworkCallEntity>> =
+        override fun observeSearch(sessionId: String, query: String, limit: Int): Flow<List<NetworkCallEntity>> =
             calls.map { currentCalls ->
                 currentCalls
                     .filter { it.sessionId == sessionId }
@@ -186,9 +175,6 @@ class ClearAppDataTest {
             calls.value = calls.value.filter { it.sessionId in sessionIds }
         }
 
-        override suspend fun enforceCountCapForSession(
-            sessionId: String,
-            maxEntries: Int,
-        ) = Unit
+        override suspend fun enforceCountCapForSession(sessionId: String, maxEntries: Int) = Unit
     }
 }

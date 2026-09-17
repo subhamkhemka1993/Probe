@@ -14,16 +14,15 @@ internal data class ProbeTypography(
     val code: TextStyle,
 ) {
     companion object {
-        fun fromMaterial3(typography: Typography = Typography()): ProbeTypography =
-            ProbeTypography(
-                titleMedium = typography.titleMedium,
-                bodyMedium = typography.bodyMedium,
-                bodySmall = typography.bodySmall,
-                labelLarge = typography.labelLarge,
-                labelMedium = typography.labelMedium,
-                labelSmall = typography.labelSmall,
-                code = typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-            )
+        fun fromMaterial3(typography: Typography = Typography()): ProbeTypography = ProbeTypography(
+            titleMedium = typography.titleMedium,
+            bodyMedium = typography.bodyMedium,
+            bodySmall = typography.bodySmall,
+            labelLarge = typography.labelLarge,
+            labelMedium = typography.labelMedium,
+            labelSmall = typography.labelSmall,
+            code = typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+        )
     }
 }
 

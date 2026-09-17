@@ -121,10 +121,7 @@ internal fun ProbeApp(services: ProbeServices) {
 }
 
 @Composable
-private fun ClearAppDataResultDialog(
-    result: ClearDataResult,
-    onDismiss: () -> Unit,
-) {
+private fun ClearAppDataResultDialog(result: ClearDataResult, onDismiss: () -> Unit) {
     val message =
         when (result) {
             is ClearDataResult.FullResetTriggered -> "App data cleared. The app will restart shortly."

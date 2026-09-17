@@ -14,15 +14,11 @@ private val exportJson =
     }
 
 internal object SessionExporter {
-    fun export(
-        calls: List<NetworkCall>,
-        format: ExportFormat,
-    ): String =
-        when (format) {
-            ExportFormat.JSON -> exportJson.encodeToString(calls.map { it.toExportDto() })
-            ExportFormat.HAR -> HarWriter.write(calls)
-            ExportFormat.CURL_BUNDLE -> calls.joinToString("\n\n") { buildCurl(it) }
-        }
+    fun export(calls: List<NetworkCall>, format: ExportFormat): String = when (format) {
+        ExportFormat.JSON -> exportJson.encodeToString(calls.map { it.toExportDto() })
+        ExportFormat.HAR -> HarWriter.write(calls)
+        ExportFormat.CURL_BUNDLE -> calls.joinToString("\n\n") { buildCurl(it) }
+    }
 }
 
 @Serializable
@@ -44,21 +40,20 @@ internal data class ExportCallDto(
     val isComplete: Boolean,
 )
 
-internal fun NetworkCall.toExportDto(): ExportCallDto =
-    ExportCallDto(
-        id = id,
-        timestampIso = Instant.fromEpochMilliseconds(timestampMillis).toString(),
-        method = method,
-        url = url,
-        host = host,
-        path = path,
-        query = query,
-        requestHeaders = redactHeaders(requestHeaders),
-        requestBody = requestBody,
-        responseStatus = responseStatus,
-        responseHeaders = responseHeaders?.let(::redactHeaders),
-        responseBody = responseBody,
-        durationMs = durationMs,
-        error = error,
-        isComplete = isComplete,
-    )
+internal fun NetworkCall.toExportDto(): ExportCallDto = ExportCallDto(
+    id = id,
+    timestampIso = Instant.fromEpochMilliseconds(timestampMillis).toString(),
+    method = method,
+    url = url,
+    host = host,
+    path = path,
+    query = query,
+    requestHeaders = redactHeaders(requestHeaders),
+    requestBody = requestBody,
+    responseStatus = responseStatus,
+    responseHeaders = responseHeaders?.let(::redactHeaders),
+    responseBody = responseBody,
+    durationMs = durationMs,
+    error = error,
+    isComplete = isComplete,
+)

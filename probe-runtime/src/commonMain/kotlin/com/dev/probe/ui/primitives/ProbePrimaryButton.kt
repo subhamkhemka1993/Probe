@@ -29,15 +29,15 @@ internal fun ProbePrimaryButton(
         onClick = onClick,
         enabled = enabled,
         modifier =
-            modifier
-                .heightIn(min = minHeight),
+        modifier
+            .heightIn(min = minHeight),
         colors =
-            ButtonDefaults.buttonColors(
-                containerColor = colors.primary,
-                contentColor = colors.onPrimary,
-                disabledContainerColor = colors.primary.copy(alpha = 0.4f),
-                disabledContentColor = colors.onPrimary.copy(alpha = 0.6f),
-            ),
+        ButtonDefaults.buttonColors(
+            containerColor = colors.primary,
+            contentColor = colors.onPrimary,
+            disabledContainerColor = colors.primary.copy(alpha = 0.4f),
+            disabledContentColor = colors.onPrimary.copy(alpha = 0.6f),
+        ),
     ) {
         Text(
             text = title,

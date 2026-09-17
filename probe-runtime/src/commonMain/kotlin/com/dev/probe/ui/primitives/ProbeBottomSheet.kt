@@ -78,15 +78,15 @@ internal fun ProbeBottomSheet(
     ) {
         Column(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding(),
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding(),
         ) {
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -104,11 +104,11 @@ internal fun ProbeBottomSheet(
                         contentDescription = null,
                         tint = colors.primary,
                         modifier =
-                            Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(colors.surface)
-                                .padding(8.dp),
+                        Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(colors.surface)
+                            .padding(8.dp),
                     )
                 }
                 Text(
@@ -123,11 +123,11 @@ internal fun ProbeBottomSheet(
 
             Column(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                        .verticalScroll(rememberScrollState())
-                        .padding(contentPadding),
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
+                    .padding(contentPadding),
                 content = content,
             )
 
@@ -135,9 +135,9 @@ internal fun ProbeBottomSheet(
                 ProbeDivider()
                 Row(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     content = footer,
                 )

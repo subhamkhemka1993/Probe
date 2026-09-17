@@ -8,16 +8,16 @@ import com.dev.probe.api.ProbeHttpCapture
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.internal.ProbeGraphFactory
 import com.dev.probe.internal.ProbePlatformHolder
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeGraphFactoryTest {

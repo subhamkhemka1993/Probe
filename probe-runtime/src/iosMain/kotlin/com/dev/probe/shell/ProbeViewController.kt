@@ -12,14 +12,13 @@ import platform.UIKit.UIViewController
  * Platform shell hosting [ProbeApp] on iOS. Created exclusively via
  * `ProbeViewControllerPresenter`, which owns presenting/dismissing this controller.
  */
-internal fun createProbeViewController(screen: ProbeStartScreen): UIViewController =
-    ComposeUIViewController {
-        val services = ProbeRuntime.services()
-        LaunchedEffect(screen) {
-            when (screen) {
-                ProbeStartScreen.Hub -> Probe.showHub()
-                ProbeStartScreen.Inspector -> Probe.showInspector()
-            }
+internal fun createProbeViewController(screen: ProbeStartScreen): UIViewController = ComposeUIViewController {
+    val services = ProbeRuntime.services()
+    LaunchedEffect(screen) {
+        when (screen) {
+            ProbeStartScreen.Hub -> Probe.showHub()
+            ProbeStartScreen.Inspector -> Probe.showInspector()
         }
-        ProbeApp(services = services)
     }
+    ProbeApp(services = services)
+}

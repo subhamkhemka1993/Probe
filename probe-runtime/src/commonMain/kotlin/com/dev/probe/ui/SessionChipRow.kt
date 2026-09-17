@@ -49,12 +49,7 @@ internal fun SessionChipRow(
 }
 
 @Composable
-private fun SessionChip(
-    label: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
+private fun SessionChip(label: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     val clickableModifier = if (enabled) Modifier.clickable(onClick = onClick) else Modifier
@@ -63,17 +58,17 @@ private fun SessionChip(
         text = label,
         style = typography.labelMedium.semiBold(),
         color =
-            when {
-                !enabled -> colors.textSecondary.copy(alpha = 0.4f)
-                selected -> colors.onPrimary
-                else -> colors.textSecondary
-            },
+        when {
+            !enabled -> colors.textSecondary.copy(alpha = 0.4f)
+            selected -> colors.onPrimary
+            else -> colors.textSecondary
+        },
         modifier =
-            Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (selected) colors.primary else colors.surface)
-                .then(clickableModifier)
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+        Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (selected) colors.primary else colors.surface)
+            .then(clickableModifier)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
     )
 }
 

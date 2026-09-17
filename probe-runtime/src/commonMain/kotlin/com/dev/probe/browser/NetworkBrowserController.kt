@@ -10,10 +10,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 internal interface BrowserServer {
-    fun start(
-        onStarted: (BrowserSession) -> Unit,
-        onError: (Throwable) -> Unit,
-    )
+    fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit)
 
     suspend fun stop()
 
@@ -124,17 +121,17 @@ internal class NetworkBrowserController(
                 token = session.token,
                 wifiUrl = "http://$wifiIpAddress:${config.port}/$tokenQuery",
                 emulatorUrl =
-                    if (addressProvider.isEmulator()) {
-                        "http://$ANDROID_EMULATOR_HOST:${config.port}/$tokenQuery"
-                    } else {
-                        null
-                    },
+                if (addressProvider.isEmulator()) {
+                    "http://$ANDROID_EMULATOR_HOST:${config.port}/$tokenQuery"
+                } else {
+                    null
+                },
                 simulatorUrl =
-                    if (addressProvider.isSimulator()) {
-                        "http://$LOCALHOST:${config.port}/$tokenQuery"
-                    } else {
-                        null
-                    },
+                if (addressProvider.isSimulator()) {
+                    "http://$LOCALHOST:${config.port}/$tokenQuery"
+                } else {
+                    null
+                },
             )
     }
 
@@ -153,10 +150,7 @@ internal class NetworkBrowserController(
                 deviceName = deviceName,
             )
 
-        override fun start(
-            onStarted: (BrowserSession) -> Unit,
-            onError: (Throwable) -> Unit,
-        ) {
+        override fun start(onStarted: (BrowserSession) -> Unit, onError: (Throwable) -> Unit) {
             delegate.start(onStarted, onError)
         }
 

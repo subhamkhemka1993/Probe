@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
+    alias(libs.plugins.androidLint)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
@@ -42,6 +43,18 @@ kotlin {
             sourceSetTreeName = "test"
         }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+        lint {
+            xmlReport = true
+            sarifReport = true
+            checkDependencies = true
+            disable += "GradleDependency"
+            // Room's own generated Dao_Impl classes call Room-internal @RestrictTo
+            // APIs; lint flags that cross-module even though it's Room's own code.
+            disable += "RestrictedApi"
+            // checkDependencies also surfaces probe-runtime's own pre-existing
+            // findings here; grandfathered in probe-runtime/lint-baseline.xml.
+            baseline = file("lint-baseline.xml")
         }
     }
 

@@ -98,10 +98,10 @@ class SessionExporterTest {
         path = "/v1/foo",
         query = query,
         requestHeaders =
-            mapOf(
-                "Authorization" to authorization,
-                "Content-Type" to "application/json",
-            ),
+        mapOf(
+            "Authorization" to authorization,
+            "Content-Type" to "application/json",
+        ),
         requestBody = """{"email":"user@example.com"}""",
         responseStatus = 200,
         responseHeaders = mapOf("Set-Cookie" to "session=abc123"),

@@ -1,14 +1,19 @@
 root = true
 
+# When authoring changes here, run ./gradlew spotlessApply.
 [*.{kt,kts}]
+ktlint_code_style = android_studio
 indent_size = 4
+max_line_length = 140
 insert_final_newline = true
-max_line_length = off
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+# Compose convention: composable functions are PascalCase; test function
+# names are backtick-quoted sentences.
+ktlint_function_naming_ignore_when_annotated_with = Composable, Test
 # KMP platform source files use a `Foo.android.kt` / `Foo.ios.kt` naming
 # convention that never matches ktlint's single-declaration filename rule.
 ktlint_standard_filename = disabled
-# Compose convention: composable functions are PascalCase.
-ktlint_function_naming_ignore_when_annotated_with = Composable
 # `_foo` backed by an `isFoo`/`fooSession()`-style accessor (not exactly `foo`)
 # is used throughout this codebase and isn't a real naming problem.
 ktlint_standard_backing-property-naming = disabled
@@ -19,7 +24,3 @@ ktlint_standard_property-naming = disabled
 # Wizard-generated Compose Multiplatform iOS entry point: PascalCase factory
 # function mirroring the `UIViewController` it constructs.
 ktlint_standard_function-naming = disabled
-
-[**/build/**]
-# Generated code (KSP, Compose resources, etc.) is never hand-edited.
-ktlint = disabled

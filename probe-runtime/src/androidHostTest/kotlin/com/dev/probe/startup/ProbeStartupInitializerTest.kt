@@ -7,11 +7,11 @@ import com.dev.probe.api.ProbeConfig
 import com.dev.probe.api.ProbeInstaller
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.ProbeRuntime
+import kotlin.test.assertTrue
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeStartupInitializerTest {

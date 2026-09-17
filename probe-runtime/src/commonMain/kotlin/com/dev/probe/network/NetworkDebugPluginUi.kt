@@ -31,10 +31,8 @@ import kotlinx.coroutines.launch
  * A [SessionChipRow] lets the user toggle between the active (this process) session and the
  * read-only previous session from the last process.
  */
-internal class NetworkDebugPluginUi(
-    private val repository: NetworkDebugRepository,
-    private val sessionManager: DebugSessionManager,
-) : ProbePlugin {
+internal class NetworkDebugPluginUi(private val repository: NetworkDebugRepository, private val sessionManager: DebugSessionManager) :
+    ProbePlugin {
     override val id = "network"
     override val displayName = "Network"
     override val description = "Inspect HTTP traffic and choose output mode"

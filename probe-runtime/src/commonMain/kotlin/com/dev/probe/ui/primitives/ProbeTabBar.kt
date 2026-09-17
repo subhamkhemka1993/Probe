@@ -37,10 +37,7 @@ internal enum class ProbeTabBarStyle {
 }
 
 @Stable
-internal class ProbeTabState(
-    val selectedIndex: MutableIntState,
-    val style: ProbeTabBarStyle,
-) {
+internal class ProbeTabState(val selectedIndex: MutableIntState, val style: ProbeTabBarStyle) {
     fun isSelected(index: Int): Boolean = selectedIndex.intValue == index
 
     fun select(index: Int) {
@@ -49,10 +46,7 @@ internal class ProbeTabState(
 }
 
 @Composable
-internal fun rememberProbeTabState(
-    initialSelectedIndex: Int = 0,
-    style: ProbeTabBarStyle = ProbeTabBarStyle.Tertiary,
-): ProbeTabState =
+internal fun rememberProbeTabState(initialSelectedIndex: Int = 0, style: ProbeTabBarStyle = ProbeTabBarStyle.Tertiary): ProbeTabState =
     remember {
         ProbeTabState(
             selectedIndex = mutableIntStateOf(initialSelectedIndex),
@@ -61,12 +55,7 @@ internal fun rememberProbeTabState(
     }
 
 @Composable
-internal fun ProbeTabBar(
-    tabItems: List<String>,
-    tabState: ProbeTabState,
-    modifier: Modifier = Modifier,
-    onTabSelected: (Int) -> Unit,
-) {
+internal fun ProbeTabBar(tabItems: List<String>, tabState: ProbeTabState, modifier: Modifier = Modifier, onTabSelected: (Int) -> Unit) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
 
@@ -74,9 +63,9 @@ internal fun ProbeTabBar(
         if (tabState.style == ProbeTabBarStyle.Tertiary) {
             HorizontalDivider(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter),
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
                 thickness = 1.dp,
                 color = colors.divider,
             )
@@ -84,20 +73,20 @@ internal fun ProbeTabBar(
 
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal =
-                            when (tabState.style) {
-                                ProbeTabBarStyle.Tertiary -> 16.dp
-                                ProbeTabBarStyle.Secondary -> 8.dp
-                            },
-                    ),
+            Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal =
+                    when (tabState.style) {
+                        ProbeTabBarStyle.Tertiary -> 16.dp
+                        ProbeTabBarStyle.Secondary -> 8.dp
+                    },
+                ),
             horizontalArrangement =
-                when (tabState.style) {
-                    ProbeTabBarStyle.Tertiary -> Arrangement.spacedBy(16.dp)
-                    ProbeTabBarStyle.Secondary -> Arrangement.spacedBy(8.dp)
-                },
+            when (tabState.style) {
+                ProbeTabBarStyle.Tertiary -> Arrangement.spacedBy(16.dp)
+                ProbeTabBarStyle.Secondary -> Arrangement.spacedBy(8.dp)
+            },
         ) {
             tabItems.forEachIndexed { index, label ->
                 val selected = tabState.isSelected(index)
@@ -140,9 +129,9 @@ internal fun ProbeTabBar(
                     ) {
                         Spacer(
                             modifier =
-                                Modifier
-                                    .size(20.dp, 2.dp)
-                                    .background(colors.primary),
+                            Modifier
+                                .size(20.dp, 2.dp)
+                                .background(colors.primary),
                         )
                     }
                 }

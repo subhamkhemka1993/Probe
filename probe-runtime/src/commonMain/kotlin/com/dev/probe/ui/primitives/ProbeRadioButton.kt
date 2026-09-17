@@ -33,15 +33,15 @@ internal fun ProbeRadioButton(
     val colors = LocalProbeColors.current
     Row(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .then(
-                    if (!readOnly) {
-                        Modifier.clickable(onClick = onChecked)
-                    } else {
-                        Modifier
-                    },
-                ).padding(innerPadding),
+        modifier
+            .fillMaxWidth()
+            .then(
+                if (!readOnly) {
+                    Modifier.clickable(onClick = onChecked)
+                } else {
+                    Modifier
+                },
+            ).padding(innerPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -50,10 +50,10 @@ internal fun ProbeRadioButton(
             onClick = if (!readOnly) onChecked else null,
             enabled = !readOnly,
             colors =
-                RadioButtonDefaults.colors(
-                    selectedColor = colors.primary,
-                    unselectedColor = colors.textSecondary,
-                ),
+            RadioButtonDefaults.colors(
+                selectedColor = colors.primary,
+                unselectedColor = colors.textSecondary,
+            ),
         )
         Row(
             modifier = Modifier.weight(1f),

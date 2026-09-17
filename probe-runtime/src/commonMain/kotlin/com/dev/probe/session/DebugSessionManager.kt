@@ -3,6 +3,8 @@
 package com.dev.probe.session
 
 import com.dev.probe.db.NetworkCallDao
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,8 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 /**
  * Owns the current/previous [DebugSession] lifecycle.
@@ -20,10 +20,7 @@ import kotlin.time.ExperimentalTime
  * fresh current (promoting any persisted current from a prior process to previous). Background
  * without kill keeps the same session. At most two sessions are retained.
  */
-internal class DebugSessionManager(
-    private val sessionDao: DebugSessionDao,
-    private val callDao: NetworkCallDao,
-) {
+internal class DebugSessionManager(private val sessionDao: DebugSessionDao, private val callDao: NetworkCallDao) {
     private val _active = MutableStateFlow(PENDING_SESSION)
 
     /** True after the first successful [ensureInitialSession] in this process instance. */
@@ -49,23 +46,22 @@ internal class DebugSessionManager(
      * concurrent callers queue up and each sees the already-bootstrapped fast path once the
      * first one finishes, instead of racing into duplicate session creation.
      */
-    suspend fun ensureInitialSession(): DebugSession =
-        bootstrapMutex.withLock {
-            if (bootstrappedThisProcess) {
-                val active = _active.value
-                if (active.id != PENDING_SESSION.id) return@withLock active
-            }
-
-            val existingCurrent = sessionDao.getByRole(SESSION_ROLE_CURRENT)?.toDomain()
-            val session =
-                if (existingCurrent != null) {
-                    promoteAndStartCurrent()
-                } else {
-                    createSession(role = SessionRole.CURRENT).also { _active.value = it }
-                }
-            bootstrappedThisProcess = true
-            session
+    suspend fun ensureInitialSession(): DebugSession = bootstrapMutex.withLock {
+        if (bootstrappedThisProcess) {
+            val active = _active.value
+            if (active.id != PENDING_SESSION.id) return@withLock active
         }
+
+        val existingCurrent = sessionDao.getByRole(SESSION_ROLE_CURRENT)?.toDomain()
+        val session =
+            if (existingCurrent != null) {
+                promoteAndStartCurrent()
+            } else {
+                createSession(role = SessionRole.CURRENT).also { _active.value = it }
+            }
+        bootstrappedThisProcess = true
+        session
+    }
 
     /**
      * Promotes the current session to "previous" and starts a fresh "current" session.

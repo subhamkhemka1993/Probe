@@ -4,11 +4,11 @@ package com.dev.probe.network.ui
 
 import com.dev.probe.network.BodyPrettyPrinter
 import com.dev.probe.network.model.NetworkCall
+import kotlin.time.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
 internal enum class NetworkStatusTone {
     Success,
@@ -18,16 +18,10 @@ internal enum class NetworkStatusTone {
     Pending,
 }
 
-internal data class NetworkStatusPresentation(
-    val label: String,
-    val tone: NetworkStatusTone,
-)
+internal data class NetworkStatusPresentation(val label: String, val tone: NetworkStatusTone)
 
 /** Display text (pretty-printed when applicable) + raw payload for copy. */
-internal data class FormattedBody(
-    val displayText: String,
-    val fullText: String,
-)
+internal data class FormattedBody(val displayText: String, val fullText: String)
 
 internal object NetworkBodyFormatter {
     /** Max chars rendered in the Body tab; full payload remains available via Copy. */
@@ -38,10 +32,7 @@ internal object NetworkBodyFormatter {
         return FormattedBody(displayText = placeholder, fullText = placeholder)
     }
 
-    fun prepare(
-        body: String?,
-        contentType: String? = null,
-    ): FormattedBody {
+    fun prepare(body: String?, contentType: String? = null): FormattedBody {
         if (body.isNullOrBlank()) return empty()
         val trimmed = body.trim()
         val pretty = BodyPrettyPrinter.format(trimmed, contentType)
@@ -59,10 +50,7 @@ internal object NetworkBodyFormatter {
         return FormattedBody(displayText = display, fullText = trimmed)
     }
 
-    fun formatForCopy(
-        body: String,
-        contentType: String? = null,
-    ): String = BodyPrettyPrinter.format(body, contentType)
+    fun formatForCopy(body: String, contentType: String? = null): String = BodyPrettyPrinter.format(body, contentType)
 }
 
 internal fun NetworkCall.statusPresentation(): NetworkStatusPresentation {
@@ -100,25 +88,19 @@ internal fun NetworkCall.responseSizeLabel(): String {
 
 private fun NetworkCall.isResponseBodyTruncated(): Boolean = responseBody?.contains("… [truncated at") == true
 
-private fun Map<String, String>.contentLengthBytes(): Long? =
-    entries
-        .firstOrNull { it.key.equals("Content-Length", ignoreCase = true) }
-        ?.value
-        ?.toLongOrNull()
-        ?.takeIf { it >= 0L }
+private fun Map<String, String>.contentLengthBytes(): Long? = entries
+    .firstOrNull { it.key.equals("Content-Length", ignoreCase = true) }
+    ?.value
+    ?.toLongOrNull()
+    ?.takeIf { it >= 0L }
 
-internal fun formatNetworkByteSize(bytes: Long): String =
-    when {
-        bytes < 1_024L -> "$bytes B"
-        bytes < 1_024L * 1_024L -> formatNetworkByteSizeUnit(bytes, 1_024L, "KB")
-        else -> formatNetworkByteSizeUnit(bytes, 1_024L * 1_024L, "MB")
-    }
+internal fun formatNetworkByteSize(bytes: Long): String = when {
+    bytes < 1_024L -> "$bytes B"
+    bytes < 1_024L * 1_024L -> formatNetworkByteSizeUnit(bytes, 1_024L, "KB")
+    else -> formatNetworkByteSizeUnit(bytes, 1_024L * 1_024L, "MB")
+}
 
-private fun formatNetworkByteSizeUnit(
-    bytes: Long,
-    unit: Long,
-    suffix: String,
-): String {
+private fun formatNetworkByteSizeUnit(bytes: Long, unit: Long, suffix: String): String {
     val value = bytes.toDouble() / unit.toDouble()
     val rounded = ((value * 10).toLong()) / 10.0
     val text =
@@ -130,13 +112,12 @@ private fun formatNetworkByteSizeUnit(
     return "$text $suffix"
 }
 
-internal fun NetworkCall.overviewStatusLabel(): String =
-    when {
-        responseStatus != null -> responseStatus.toString()
-        error != null -> "Failed: $error"
-        !isComplete -> "Pending…"
-        else -> "—"
-    }
+internal fun NetworkCall.overviewStatusLabel(): String = when {
+    responseStatus != null -> responseStatus.toString()
+    error != null -> "Failed: $error"
+    !isComplete -> "Pending…"
+    else -> "—"
+}
 
 internal fun formatNetworkTimestamp(epochMillis: Long): String {
     val instant = Instant.fromEpochMilliseconds(epochMillis)

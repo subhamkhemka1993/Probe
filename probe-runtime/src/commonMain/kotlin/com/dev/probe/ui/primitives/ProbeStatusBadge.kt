@@ -30,21 +30,17 @@ internal fun NetworkStatusTone.toBadgeColor(): Color {
 }
 
 @Composable
-internal fun ProbeStatusBadge(
-    text: String,
-    tone: NetworkStatusTone,
-    modifier: Modifier = Modifier,
-) {
+internal fun ProbeStatusBadge(text: String, tone: NetworkStatusTone, modifier: Modifier = Modifier) {
     val typography = LocalProbeTypography.current
     Text(
         text = text,
         style = typography.labelSmall,
         color = Color.White,
         modifier =
-            modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(tone.toBadgeColor())
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(tone.toBadgeColor())
+            .padding(horizontal = 8.dp, vertical = 4.dp),
     )
 }
 

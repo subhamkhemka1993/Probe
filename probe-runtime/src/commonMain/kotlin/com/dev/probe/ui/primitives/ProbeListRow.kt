@@ -18,10 +18,7 @@ import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.theme.semiBold
 
-internal data class ContentWeights(
-    val leftWeight: Boolean = true,
-    val rightWeight: Boolean = true,
-)
+internal data class ContentWeights(val leftWeight: Boolean = true, val rightWeight: Boolean = true)
 
 @Composable
 internal fun ProbeListRow(
@@ -34,33 +31,33 @@ internal fun ProbeListRow(
 ) {
     Row(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(innerPadding),
+        modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(innerPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
             modifier =
-                Modifier.then(
-                    if (contentWeights.leftWeight) {
-                        Modifier.weight(1f)
-                    } else {
-                        Modifier
-                    },
-                ),
+            Modifier.then(
+                if (contentWeights.leftWeight) {
+                    Modifier.weight(1f)
+                } else {
+                    Modifier
+                },
+            ),
             content = leftContent,
         )
         Row(
             modifier =
-                Modifier.then(
-                    if (contentWeights.rightWeight) {
-                        Modifier.weight(1f)
-                    } else {
-                        Modifier
-                    },
-                ),
+            Modifier.then(
+                if (contentWeights.rightWeight) {
+                    Modifier.weight(1f)
+                } else {
+                    Modifier
+                },
+            ),
             horizontalArrangement = Arrangement.End,
             content = rightContent,
         )

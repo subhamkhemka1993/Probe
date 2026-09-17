@@ -60,4 +60,16 @@ android {
     buildFeatures {
         compose = true
     }
+    lint {
+        xmlReport = true
+        sarifReport = true
+        checkDependencies = true
+        disable += "GradleDependency"
+        // Room's own generated Dao_Impl classes call Room-internal @RestrictTo
+        // APIs; lint flags that cross-module even though it's Room's own code.
+        disable += "RestrictedApi"
+        // checkDependencies also surfaces probe-runtime's own pre-existing
+        // findings here; grandfathered below.
+        baseline = file("lint-baseline.xml")
+    }
 }

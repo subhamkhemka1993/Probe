@@ -69,13 +69,13 @@ internal fun ProbeSearchField(
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { onDone() }),
         colors =
-            OutlinedTextFieldDefaults.colors(
-                focusedTextColor = colors.textPrimary,
-                unfocusedTextColor = colors.textPrimary,
-                focusedBorderColor = colors.primary,
-                unfocusedBorderColor = colors.divider,
-                cursorColor = colors.primary,
-            ),
+        OutlinedTextFieldDefaults.colors(
+            focusedTextColor = colors.textPrimary,
+            unfocusedTextColor = colors.textPrimary,
+            focusedBorderColor = colors.primary,
+            unfocusedBorderColor = colors.divider,
+            cursorColor = colors.primary,
+        ),
     )
 }
 

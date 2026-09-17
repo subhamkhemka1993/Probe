@@ -8,9 +8,7 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import com.dev.probe.shell.ProbeNotificationPermissionActivity
 
-internal actual open class ProbeNotifier actual constructor(
-    private val platformContext: ProbePlatformContext,
-) {
+internal actual open class ProbeNotifier actual constructor(private val platformContext: ProbePlatformContext) {
     actual open fun show(state: ProbeNotifierState) {
         val context = platformContext.context
         ProbeNotificationPoster.ensureChannel(context)

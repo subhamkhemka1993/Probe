@@ -58,11 +58,7 @@ private val CardShape = RoundedCornerShape(12.dp)
  * navigation: Overview | Request | Response, and Headers | Body sub-tabs per payload.
  */
 @Composable
-internal fun NetworkDetailContent(
-    call: NetworkCall,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkDetailContent(call: NetworkCall, onBack: () -> Unit, modifier: Modifier = Modifier) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     val clipboard = LocalClipboardManager.current
@@ -78,9 +74,9 @@ internal fun NetworkDetailContent(
     Column(modifier = modifier.fillMaxSize()) {
         Row(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(all = 8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -209,19 +205,19 @@ private fun OverviewTab(
     val colors = LocalProbeColors.current
     Column(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+        modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Column(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(CardShape)
-                    .background(colors.surface)
-                    .padding(16.dp),
+            Modifier
+                .fillMaxWidth()
+                .clip(CardShape)
+                .background(colors.surface)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
@@ -279,25 +275,25 @@ private fun PayloadTabContent(
             tabItems = PayloadTab.entries.map { it.name },
             tabState = subTabState,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             onTabSelected = { subTabState.select(it) },
         )
 
         Box(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             if (bodyTabOpened) {
                 NetworkBodyBlock(
                     modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .zIndex(0f),
+                    Modifier
+                        .fillMaxSize()
+                        .zIndex(0f),
                     body = body,
                     contentType = contentType,
                     onCopy = { onCopyBody(body.orEmpty().trim()) },
@@ -307,11 +303,11 @@ private fun PayloadTabContent(
             if (selectedPayloadTab == PayloadTab.Headers) {
                 Column(
                     modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .zIndex(1f)
-                            .verticalScroll(rememberScrollState())
-                            .background(colors.background),
+                    Modifier
+                        .fillMaxSize()
+                        .zIndex(1f)
+                        .verticalScroll(rememberScrollState())
+                        .background(colors.background),
                 ) {
                     NetworkHeadersTable(headers = headers)
                 }

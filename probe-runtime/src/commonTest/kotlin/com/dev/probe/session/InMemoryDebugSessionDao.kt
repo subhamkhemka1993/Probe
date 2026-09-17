@@ -27,11 +27,7 @@ internal class InMemoryDebugSessionDao : DebugSessionDao {
 
     override fun observeAll(): Flow<List<DebugSessionEntity>> = sessions
 
-    override suspend fun updateRole(
-        id: String,
-        role: String,
-        endedAtMillis: Long?,
-    ) {
+    override suspend fun updateRole(id: String, role: String, endedAtMillis: Long?) {
         sessions.value =
             sessions.value.map {
                 if (it.id == id) it.copy(role = role, endedAtMillis = endedAtMillis) else it

@@ -10,4 +10,5 @@ import com.dev.probe.prefs.createDebugPreferencesDataStore
 
 internal actual fun createDatabase(platform: ProbePlatformContext): ProbeDatabase = getProbeDatabase(getDatabaseBuilder(platform.context))
 
-internal actual fun createPreferencesDataStore(platform: ProbePlatformContext): DataStore<Preferences> = createDebugPreferencesDataStore(platform.context)
+internal actual fun createPreferencesDataStore(platform: ProbePlatformContext): DataStore<Preferences> =
+    createDebugPreferencesDataStore(platform.context)

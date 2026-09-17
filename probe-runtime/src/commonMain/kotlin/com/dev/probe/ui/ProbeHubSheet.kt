@@ -31,11 +31,10 @@ import com.dev.probe.ui.primitives.ProbeBottomSheet
 import com.dev.probe.ui.primitives.ProbeDivider
 import com.dev.probe.ui.primitives.ProbeListRow
 
-private fun hubPluginIcon(pluginId: String): ImageVector =
-    when (pluginId) {
-        "network" -> Icons.Filled.SwapHoriz
-        else -> Icons.Filled.Info
-    }
+private fun hubPluginIcon(pluginId: String): ImageVector = when (pluginId) {
+    "network" -> Icons.Filled.SwapHoriz
+    else -> Icons.Filled.Info
+}
 
 @Composable
 private fun HubSectionHeader(title: String) {

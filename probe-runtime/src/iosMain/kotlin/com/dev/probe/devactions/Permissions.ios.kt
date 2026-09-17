@@ -16,9 +16,7 @@ import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
-internal actual class PermissionDevActionsController internal constructor(
-    private val mokoController: PermissionsController,
-) {
+internal actual class PermissionDevActionsController internal constructor(private val mokoController: PermissionsController) {
     actual suspend fun statusOf(id: String): PermissionState {
         if (!isDeclared(id)) return PermissionState.Unsupported
         val mokoPermission = id.toMokoPermission() ?: return PermissionState.Unsupported
@@ -61,20 +59,18 @@ internal actual class PermissionDevActionsController internal constructor(
         return NSBundle.mainBundle.objectForInfoDictionaryKey(infoPlistKey) != null
     }
 
-    private fun String.toInfoPlistKey(): String? =
-        when (this) {
-            KnownPermission.Camera.id -> "NSCameraUsageDescription"
-            KnownPermission.Location.id -> "NSLocationWhenInUseUsageDescription"
-            else -> null
-        }
+    private fun String.toInfoPlistKey(): String? = when (this) {
+        KnownPermission.Camera.id -> "NSCameraUsageDescription"
+        KnownPermission.Location.id -> "NSLocationWhenInUseUsageDescription"
+        else -> null
+    }
 
-    private fun String.toMokoPermission(): Permission? =
-        when (this) {
-            KnownPermission.Notifications.id -> Permission.REMOTE_NOTIFICATION
-            KnownPermission.Camera.id -> Permission.CAMERA
-            KnownPermission.Location.id -> Permission.LOCATION
-            else -> null
-        }
+    private fun String.toMokoPermission(): Permission? = when (this) {
+        KnownPermission.Notifications.id -> Permission.REMOTE_NOTIFICATION
+        KnownPermission.Camera.id -> Permission.CAMERA
+        KnownPermission.Location.id -> Permission.LOCATION
+        else -> null
+    }
 }
 
 @Composable

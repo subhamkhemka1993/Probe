@@ -8,9 +8,7 @@ import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNNotificationRequest
 import platform.UserNotifications.UNUserNotificationCenter
 
-internal actual open class ProbeNotifier actual constructor(
-    private val platformContext: ProbePlatformContext,
-) {
+internal actual open class ProbeNotifier actual constructor(private val platformContext: ProbePlatformContext) {
     private var authorizationRequested = false
 
     actual open fun show(state: ProbeNotifierState) {

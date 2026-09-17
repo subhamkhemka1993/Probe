@@ -12,16 +12,14 @@ internal const val DEBUG_PREFERENCES_FILE_NAME = "debug_preferences.preferences_
 
 private val NetworkOutputModeKey = stringPreferencesKey("network_output_mode")
 
-internal class DebugPreferencesStore(
-    private val dataStore: DataStore<Preferences>,
-) {
+internal class DebugPreferencesStore(private val dataStore: DataStore<Preferences>) {
     val preferences: Flow<DebugPreferences> =
         dataStore.data.map { prefs ->
             DebugPreferences(
                 networkOutputMode =
-                    prefs[NetworkOutputModeKey]
-                        ?.let(::parseNetworkOutputMode)
-                        ?: NetworkOutputMode.INSPECTOR,
+                prefs[NetworkOutputModeKey]
+                    ?.let(::parseNetworkOutputMode)
+                    ?: NetworkOutputMode.INSPECTOR,
             )
         }
 
@@ -36,8 +34,7 @@ internal class DebugPreferencesStore(
     }
 }
 
-private fun parseNetworkOutputMode(stored: String): NetworkOutputMode? =
-    when (stored) {
-        "ZTOOL", "CONSOLE" -> NetworkOutputMode.INSPECTOR
-        else -> runCatching { NetworkOutputMode.valueOf(stored) }.getOrNull()
-    }
+private fun parseNetworkOutputMode(stored: String): NetworkOutputMode? = when (stored) {
+    "ZTOOL", "CONSOLE" -> NetworkOutputMode.INSPECTOR
+    else -> runCatching { NetworkOutputMode.valueOf(stored) }.getOrNull()
+}

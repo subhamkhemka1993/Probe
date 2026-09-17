@@ -30,11 +30,7 @@ import com.dev.probe.ui.primitives.ProbePrimaryButton
 import com.dev.probe.ui.primitives.ProbeRadioButton
 import kotlinx.coroutines.launch
 
-private data class NetworkModeOption(
-    val mode: NetworkOutputMode,
-    val label: String,
-    val subtitle: String,
-)
+private data class NetworkModeOption(val mode: NetworkOutputMode, val label: String, val subtitle: String)
 
 private val networkModeOptions =
     listOf(
@@ -109,10 +105,7 @@ internal fun NetworkOutputModeSheet(
 }
 
 @Composable
-internal fun NetworkOutputModeSheetContent(
-    selectedMode: NetworkOutputMode,
-    onModeSelected: (NetworkOutputMode) -> Unit,
-) {
+internal fun NetworkOutputModeSheetContent(selectedMode: NetworkOutputMode, onModeSelected: (NetworkOutputMode) -> Unit) {
     Column {
         networkModeOptions.forEachIndexed { index, option ->
             Row(

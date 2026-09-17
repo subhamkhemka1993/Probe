@@ -12,10 +12,10 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
 import com.dev.probe.session.DebugSessionDao
 import com.dev.probe.session.DebugSessionEntity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 
 internal const val Z_DEBUG_DB_NAME = "probe_network.db"
 
@@ -67,9 +67,8 @@ internal expect object ProbeDatabaseConstructor : RoomDatabaseConstructor<ProbeD
     override fun initialize(): ProbeDatabase
 }
 
-internal fun getProbeDatabase(builder: RoomDatabase.Builder<ProbeDatabase>): ProbeDatabase =
-    builder
-        .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.IO)
-        .addMigrations(ProbeDatabase.MIGRATION_1_2)
-        .build()
+internal fun getProbeDatabase(builder: RoomDatabase.Builder<ProbeDatabase>): ProbeDatabase = builder
+    .setDriver(BundledSQLiteDriver())
+    .setQueryCoroutineContext(Dispatchers.IO)
+    .addMigrations(ProbeDatabase.MIGRATION_1_2)
+    .build()

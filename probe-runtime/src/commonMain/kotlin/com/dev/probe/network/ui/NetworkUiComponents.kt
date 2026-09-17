@@ -66,18 +66,15 @@ private fun networkMethodColor(method: String): Color {
 }
 
 @Composable
-internal fun NetworkMethodBadge(
-    method: String,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkMethodBadge(method: String, modifier: Modifier = Modifier) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     Box(
         modifier =
-            modifier
-                .clip(ExtraSmallShape)
-                .background(colors.codeBackground)
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier
+            .clip(ExtraSmallShape)
+            .background(colors.codeBackground)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -103,10 +100,7 @@ private fun NetworkMethodBadgePreview() {
 }
 
 @Composable
-internal fun NetworkStatusBadge(
-    presentation: NetworkStatusPresentation,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkStatusBadge(presentation: NetworkStatusPresentation, modifier: Modifier = Modifier) {
     ProbeStatusBadge(
         text = presentation.label,
         tone = presentation.tone,
@@ -126,24 +120,18 @@ private fun NetworkStatusBadgePreview() {
 }
 
 @Composable
-internal fun NetworkStatusStripe(
-    tone: NetworkStatusTone,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkStatusStripe(tone: NetworkStatusTone, modifier: Modifier = Modifier) {
     Box(
         modifier =
-            modifier
-                .width(4.dp)
-                .fillMaxHeight()
-                .background(tone.toAccentColor()),
+        modifier
+            .width(4.dp)
+            .fillMaxHeight()
+            .background(tone.toAccentColor()),
     )
 }
 
 @Composable
-internal fun NetworkHeadersTable(
-    headers: Map<String, String>,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkHeadersTable(headers: Map<String, String>, modifier: Modifier = Modifier) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
 
@@ -154,10 +142,10 @@ internal fun NetworkHeadersTable(
 
     Column(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .clip(SmallShape)
-                .background(colors.surface),
+        modifier
+            .fillMaxWidth()
+            .clip(SmallShape)
+            .background(colors.surface),
     ) {
         headers.entries
             .sortedBy { it.key.lowercase() }
@@ -168,11 +156,11 @@ internal fun NetworkHeadersTable(
                 SelectionContainer {
                     Row(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (index % 2 == 0) colors.surface else colors.background,
-                                ).padding(horizontal = 12.dp, vertical = 10.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .background(
+                                if (index % 2 == 0) colors.surface else colors.background,
+                            ).padding(horizontal = 12.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.Top,
                     ) {
@@ -211,12 +199,7 @@ private fun NetworkHeadersTableEmptyPreview() {
 }
 
 @Composable
-internal fun NetworkBodyBlock(
-    body: String?,
-    contentType: String? = null,
-    modifier: Modifier = Modifier,
-    onCopy: (() -> Unit)? = null,
-) {
+internal fun NetworkBodyBlock(body: String?, contentType: String? = null, modifier: Modifier = Modifier, onCopy: (() -> Unit)? = null) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     var formattedBody by remember(body, contentType) {
@@ -233,9 +216,9 @@ internal fun NetworkBodyBlock(
         if (onCopy != null) {
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.End,
             ) {
                 ProbeIconButton(
@@ -249,12 +232,12 @@ internal fun NetworkBodyBlock(
         SelectionContainer {
             Text(
                 modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .clip(SmallShape)
-                        .background(colors.codeBackground)
-                        .padding(12.dp),
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .clip(SmallShape)
+                    .background(colors.codeBackground)
+                    .padding(12.dp),
                 text = formattedBody.displayText,
                 style = typography.code,
                 color = colors.textPrimary,
@@ -263,21 +246,20 @@ internal fun NetworkBodyBlock(
     }
 }
 
-private fun placeholderFormattedBody(body: String?): FormattedBody =
-    if (body.isNullOrBlank()) {
-        NetworkBodyFormatter.empty()
-    } else {
-        FormattedBody(displayText = "…", fullText = body.trim())
-    }
+private fun placeholderFormattedBody(body: String?): FormattedBody = if (body.isNullOrBlank()) {
+    NetworkBodyFormatter.empty()
+} else {
+    FormattedBody(displayText = "…", fullText = body.trim())
+}
 
 @ThemePreviews
 @Composable
 private fun NetworkBodyBlockPreview() {
     ProbeBackgroundPreviewContainer(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(240.dp),
+        Modifier
+            .fillMaxWidth()
+            .height(240.dp),
     ) {
         NetworkBodyBlock(
             body = ProbePreviewData.minifiedJsonBody,
@@ -292,9 +274,9 @@ private fun NetworkBodyBlockPreview() {
 private fun NetworkBodyBlockRequestPreview() {
     ProbeBackgroundPreviewContainer(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(180.dp),
+        Modifier
+            .fillMaxWidth()
+            .height(180.dp),
     ) {
         NetworkBodyBlock(
             body = ProbePreviewData.postLogin.requestBody,
@@ -305,11 +287,7 @@ private fun NetworkBodyBlockRequestPreview() {
 }
 
 @Composable
-internal fun NetworkOverviewRow(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkOverviewRow(label: String, value: String, modifier: Modifier = Modifier) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     Row(
@@ -348,17 +326,14 @@ private fun NetworkOverviewRowPreview() {
 }
 
 @Composable
-internal fun NetworkEmptyState(
-    message: String,
-    modifier: Modifier = Modifier,
-) {
+internal fun NetworkEmptyState(message: String, modifier: Modifier = Modifier) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     Box(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp),
+        modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -378,26 +353,22 @@ private fun NetworkEmptyStatePreview() {
 }
 
 @Composable
-internal fun NetworkCardContainer(
-    tone: NetworkStatusTone,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+internal fun NetworkCardContainer(tone: NetworkStatusTone, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val colors = LocalProbeColors.current
     Row(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .clip(CardShape)
-                .background(colors.surface),
+        modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .clip(CardShape)
+            .background(colors.surface),
     ) {
         NetworkStatusStripe(tone = tone)
         Column(
             modifier =
-                Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp, vertical = 12.dp),
+            Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             content = { content() },
         )
     }

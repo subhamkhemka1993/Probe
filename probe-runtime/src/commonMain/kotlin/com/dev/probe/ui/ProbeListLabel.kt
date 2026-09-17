@@ -16,11 +16,7 @@ import com.dev.probe.theme.semiBold
 
 /** Two-line list label — title + subtitle stacked. */
 @Composable
-internal fun ProbeListLabel(
-    title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier,
-) {
+internal fun ProbeListLabel(title: String, subtitle: String, modifier: Modifier = Modifier) {
     val colors = LocalProbeColors.current
     val typography = LocalProbeTypography.current
     Column(

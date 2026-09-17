@@ -10,10 +10,7 @@ private const val UTF8_CONTINUATION_BYTE_TAG = 0x80
  * exceed [maxBytes]. Backs off from the cut point while the byte has the `10` high-bit pattern of
  * a UTF-8 continuation byte, so [decodeToString] never splits a multibyte character.
  */
-internal fun truncateBody(
-    body: String,
-    maxBytes: Int,
-): String {
+internal fun truncateBody(body: String, maxBytes: Int): String {
     val bytes = body.encodeToByteArray()
     if (bytes.size <= maxBytes) return body
     var end = maxBytes
@@ -22,7 +19,4 @@ internal fun truncateBody(
 }
 
 @JvmName("truncateBodyOrNull")
-internal fun truncateBody(
-    body: String?,
-    maxBytes: Int,
-): String? = body?.let { truncateBody(it, maxBytes) }
+internal fun truncateBody(body: String?, maxBytes: Int): String? = body?.let { truncateBody(it, maxBytes) }

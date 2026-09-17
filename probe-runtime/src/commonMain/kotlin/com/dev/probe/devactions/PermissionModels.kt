@@ -11,20 +11,13 @@ internal enum class PermissionState {
 }
 
 /** One row in the Permissions dev panel. [id] matches a [KnownPermission.id]. */
-internal data class PermissionRow(
-    val id: String,
-    val label: String,
-    val state: PermissionState,
-)
+internal data class PermissionRow(val id: String, val label: String, val state: PermissionState)
 
 /**
  * Permissions surfaced by the dev panel. Only host-declared permissions (manifest / Info.plist)
  * resolve to anything other than [PermissionState.Unsupported] — see platform actuals.
  */
-internal enum class KnownPermission(
-    val id: String,
-    val label: String,
-) {
+internal enum class KnownPermission(val id: String, val label: String) {
     Notifications(id = "notifications", label = "Notifications"),
     Camera(id = "camera", label = "Camera"),
     Location(id = "location", label = "Location"),

@@ -3,12 +3,12 @@ package com.dev.probe.api
 import com.dev.probe.internal.ProbeGraphFactory
 import com.dev.probe.internal.ProbePlatformHolder
 import com.dev.probe.internal.ProbeServices
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.internal.SynchronizedObject
 import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.runBlocking
-import kotlin.concurrent.Volatile
 
 @OptIn(InternalCoroutinesApi::class)
 object ProbeRuntime {
@@ -17,11 +17,7 @@ object ProbeRuntime {
     @Volatile
     private var services: ProbeServices? = null
 
-    fun initialize(
-        config: ProbeConfig,
-        platform: ProbePlatformContext,
-        scope: CoroutineScope,
-    ) {
+    fun initialize(config: ProbeConfig, platform: ProbePlatformContext, scope: CoroutineScope) {
         if (services != null) return
         synchronized(lock) {
             if (services != null) return
@@ -86,8 +82,7 @@ object ProbeRuntime {
     /** Returns `false` before [initialize] rather than throwing, unlike [services]. */
     fun isEnabled(): Boolean = services?.config?.isEnabled() ?: false
 
-    internal fun services(): ProbeServices =
-        checkNotNull(services) {
-            "ProbeRuntime.initialize() must be called before accessing debug services"
-        }
+    internal fun services(): ProbeServices = checkNotNull(services) {
+        "ProbeRuntime.initialize() must be called before accessing debug services"
+    }
 }

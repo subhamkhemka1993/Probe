@@ -15,13 +15,13 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.content.OutgoingContent
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * Configuration for [NetworkDebugClientPlugin].
@@ -125,11 +125,7 @@ private fun Result<*>.rethrowIfCancelled() {
     if (cause is CancellationException) throw cause
 }
 
-private fun buildPendingCall(
-    request: HttpRequestBuilder,
-    callId: String,
-    startedAt: Long,
-): NetworkCall {
+private fun buildPendingCall(request: HttpRequestBuilder, callId: String, startedAt: Long): NetworkCall {
     val url = request.url.build()
     return NetworkCall(
         id = callId,
@@ -180,12 +176,7 @@ private suspend fun completeCapture(
     }
 }
 
-private suspend fun failCapture(
-    repository: NetworkDebugRepository,
-    callId: String,
-    startedAt: Long,
-    error: String?,
-) {
+private suspend fun failCapture(repository: NetworkDebugRepository, callId: String, startedAt: Long, error: String?) {
     val durationMs = Clock.System.now().toEpochMilliseconds() - startedAt
     repository.update(callId) {
         it.copy(

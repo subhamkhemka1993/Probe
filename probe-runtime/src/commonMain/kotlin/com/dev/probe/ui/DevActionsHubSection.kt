@@ -20,10 +20,7 @@ import com.dev.probe.ui.primitives.ProbeListRow
  * Hub "Dev" section rows — Permissions (2e) and App data (wired in 2f).
  */
 @Composable
-internal fun DevActionsHubSection(
-    onPermissionsClick: () -> Unit,
-    onAppDataClick: () -> Unit,
-) {
+internal fun DevActionsHubSection(onPermissionsClick: () -> Unit, onAppDataClick: () -> Unit) {
     val colors = LocalProbeColors.current
 
     ProbeListRow(

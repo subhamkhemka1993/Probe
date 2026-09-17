@@ -12,10 +12,7 @@ internal object BodyPrettyPrinter {
             prettyPrintIndent = "  "
         }
 
-    fun format(
-        body: String,
-        contentType: String? = null,
-    ): String {
+    fun format(body: String, contentType: String? = null): String {
         if (body.isBlank()) return "(empty)"
         val trimmed = body.trim()
         if (trimmed.length > MAX_PRETTY_CHARS) return trimmed
@@ -26,60 +23,50 @@ internal object BodyPrettyPrinter {
         }
     }
 
-    private fun isJson(
-        contentType: String?,
-        body: String,
-    ): Boolean =
-        contentType?.contains("json", ignoreCase = true) == true ||
-            body.startsWith("{") ||
-            body.startsWith("[")
+    private fun isJson(contentType: String?, body: String): Boolean = contentType?.contains("json", ignoreCase = true) == true ||
+        body.startsWith("{") ||
+        body.startsWith("[")
 
-    private fun isXml(
-        contentType: String?,
-        body: String,
-    ): Boolean =
-        contentType?.contains("xml", ignoreCase = true) == true ||
-            body.startsWith("<")
+    private fun isXml(contentType: String?, body: String): Boolean = contentType?.contains("xml", ignoreCase = true) == true ||
+        body.startsWith("<")
 
-    private fun formatJson(raw: String): String =
-        try {
-            val element = Json.parseToJsonElement(raw)
-            jsonFormatter.encodeToString(JsonElement.serializer(), element)
-        } catch (_: Exception) {
+    private fun formatJson(raw: String): String = try {
+        val element = Json.parseToJsonElement(raw)
+        jsonFormatter.encodeToString(JsonElement.serializer(), element)
+    } catch (_: Exception) {
+        raw
+    }
+
+    private fun prettyXml(raw: String): String = try {
+        val lines =
             raw
-        }
+                .trim()
+                .replace(">\\s+<".toRegex(), "><")
+                .replace("><", ">\n<")
+                .lines()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+        if (lines.isEmpty()) return raw
 
-    private fun prettyXml(raw: String): String =
-        try {
-            val lines =
-                raw
-                    .trim()
-                    .replace(">\\s+<".toRegex(), "><")
-                    .replace("><", ">\n<")
-                    .lines()
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-            if (lines.isEmpty()) return raw
-
-            val sb = StringBuilder()
-            var depth = 0
-            for (line in lines) {
-                if (line.startsWith("</")) {
-                    depth = (depth - 1).coerceAtLeast(0)
-                }
-                sb.append("  ".repeat(depth))
-                sb.appendLine(line)
-                if (
-                    line.startsWith("<") &&
-                    !line.startsWith("</") &&
-                    !line.startsWith("<?") &&
-                    !line.endsWith("/>")
-                ) {
-                    depth++
-                }
+        val sb = StringBuilder()
+        var depth = 0
+        for (line in lines) {
+            if (line.startsWith("</")) {
+                depth = (depth - 1).coerceAtLeast(0)
             }
-            sb.toString().trimEnd()
-        } catch (_: Exception) {
-            raw
+            sb.append("  ".repeat(depth))
+            sb.appendLine(line)
+            if (
+                line.startsWith("<") &&
+                !line.startsWith("</") &&
+                !line.startsWith("<?") &&
+                !line.endsWith("/>")
+            ) {
+                depth++
+            }
         }
+        sb.toString().trimEnd()
+    } catch (_: Exception) {
+        raw
+    }
 }

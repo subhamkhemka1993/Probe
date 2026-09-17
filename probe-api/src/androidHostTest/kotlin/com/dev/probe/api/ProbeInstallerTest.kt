@@ -2,11 +2,11 @@ package com.dev.probe.api
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import kotlin.test.assertEquals
 import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertEquals
 
 @RunWith(RobolectricTestRunner::class)
 class ProbeInstallerTest {
@@ -30,10 +30,7 @@ class ProbeInstallerTest {
         var installedWith: ProbeConfig? = null
         ProbeInstaller.register(
             object : ProbeInstaller.Hook {
-                override fun install(
-                    config: ProbeConfig,
-                    platform: ProbePlatformContext,
-                ) {
+                override fun install(config: ProbeConfig, platform: ProbePlatformContext) {
                     installedWith = config
                 }
             },

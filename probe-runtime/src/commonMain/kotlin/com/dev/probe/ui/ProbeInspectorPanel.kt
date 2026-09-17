@@ -24,11 +24,11 @@ internal fun ProbeInspectorPanel(modifier: Modifier = Modifier) {
 
     Box(
         modifier =
-            modifier
-                .fillMaxSize()
-                .background(colors.background)
-                .statusBarsPadding()
-                .navigationBarsPadding(),
+        modifier
+            .fillMaxSize()
+            .background(colors.background)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
     ) {
         Probe.plugins.firstOrNull()?.PanelContent(onClose = { Probe.dismissAll() })
     }

@@ -47,11 +47,11 @@ internal object ProbePreviewData {
             requestBody = null,
             responseStatus = 200,
             responseHeaders =
-                mapOf(
-                    "content-type" to "application/json; charset=utf-8",
-                    "cache-control" to "max-age=60",
-                    "Content-Length" to minifiedJsonBody.encodeToByteArray().size.toString(),
-                ),
+            mapOf(
+                "content-type" to "application/json; charset=utf-8",
+                "cache-control" to "max-age=60",
+                "Content-Length" to minifiedJsonBody.encodeToByteArray().size.toString(),
+            ),
             responseBody = minifiedJsonBody,
             durationMs = 193,
             error = null,
@@ -164,16 +164,11 @@ internal object ProbePreviewData {
         )
 }
 
-private fun previewPlugin(
-    id: String,
-    displayName: String,
-    description: String = "",
-): ProbePlugin =
-    object : ProbePlugin {
-        override val id: String = id
-        override val displayName: String = displayName
-        override val description: String = description
+private fun previewPlugin(id: String, displayName: String, description: String = ""): ProbePlugin = object : ProbePlugin {
+    override val id: String = id
+    override val displayName: String = displayName
+    override val description: String = description
 
-        @Composable
-        override fun PanelContent(onClose: () -> Unit) = Unit
-    }
+    @Composable
+    override fun PanelContent(onClose: () -> Unit) = Unit
+}

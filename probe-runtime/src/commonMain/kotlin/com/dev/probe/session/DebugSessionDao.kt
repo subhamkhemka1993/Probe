@@ -21,11 +21,7 @@ internal interface DebugSessionDao {
     fun observeAll(): Flow<List<DebugSessionEntity>>
 
     @Query("UPDATE debug_sessions SET role = :role, endedAtMillis = :endedAtMillis WHERE id = :id")
-    suspend fun updateRole(
-        id: String,
-        role: String,
-        endedAtMillis: Long?,
-    )
+    suspend fun updateRole(id: String, role: String, endedAtMillis: Long?)
 
     @Query("DELETE FROM debug_sessions WHERE role NOT IN ('current', 'previous')")
     suspend fun deleteOrphans()

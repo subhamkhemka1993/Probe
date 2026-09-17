@@ -54,10 +54,7 @@ internal val LocalProbeColors = staticCompositionLocalOf { ProbeThemeDefaults.co
 internal val LocalProbeTypography = staticCompositionLocalOf { ProbeThemeDefaults.typography() }
 
 @Composable
-internal fun ProbeTheme(
-    override: ProbeThemeOverride? = null,
-    content: @Composable () -> Unit,
-) {
+internal fun ProbeTheme(override: ProbeThemeOverride? = null, content: @Composable () -> Unit) {
     val colors = remember(override) { ProbeThemeDefaults.colors(override) }
     val typography = remember { ProbeThemeDefaults.typography() }
     val materialTypography = remember { material3Typography() }
