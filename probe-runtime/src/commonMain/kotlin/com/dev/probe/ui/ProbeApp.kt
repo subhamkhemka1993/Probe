@@ -62,7 +62,11 @@ internal fun ProbeApp(services: ProbeServices) {
                 plugins = Probe.plugins,
                 isVisible = hubVisible,
                 onDismiss = { Probe.dismissAll() },
-                onPluginClick = { Probe.showNetworkModePicker() },
+                onPluginClick = { plugin ->
+                    // "network" keeps its own in-app/browser mode picker; every other plugin
+                    // opens straight into its full-screen inspector.
+                    if (plugin.id == "network") Probe.showNetworkModePicker() else Probe.showPluginInspector(plugin.id)
+                },
                 onPermissionsClick = { Probe.showPermissions() },
                 onAppDataClick = { confirmClearAppData = true },
             )

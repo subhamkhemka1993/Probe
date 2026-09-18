@@ -51,4 +51,4 @@ in this directory in the same commit — see [../git-guide.md](../git-guide.md#k
 is claimed here beyond what's inferable from the existing test layout and module boundaries above.
 
 ---
-← [Guide index](README.md) · Previous: [Extensibility](extensibility.md)
+← [Guide index](README.md) · Previous: [Extensibility](extensibility.md) · Next: [Publishing](publishing.md)

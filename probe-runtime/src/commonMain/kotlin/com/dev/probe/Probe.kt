@@ -22,6 +22,14 @@ internal object Probe {
     private var _plugins: List<ProbePlugin> = emptyList()
     val plugins: List<ProbePlugin> get() = _plugins
 
+    /**
+     * Which plugin [ProbeScreen.INSPECTOR] should render — set by [showNetworkModePicker] (the
+     * network plugin's own two-mode picker eventually calls [showInspector] without repeating
+     * it) or [showPluginInspector] (every other plugin, tapped directly from the hub).
+     */
+    private var _selectedPluginId: String? = null
+    val selectedPluginId: String? get() = _selectedPluginId
+
     /** When [screen] is [ProbeScreen.INSPECTOR], handles list ↔ detail then exits inspector. */
     private var inspectorBackHandler: (() -> Boolean)? = null
 
@@ -35,10 +43,17 @@ internal object Probe {
     }
 
     fun showNetworkModePicker() {
+        _selectedPluginId = "network"
         _screen.value = ProbeScreen.NETWORK_MODE
     }
 
     fun showInspector() {
+        _screen.value = ProbeScreen.INSPECTOR
+    }
+
+    /** Opens [ProbeScreen.INSPECTOR] directly on [pluginId] — every plugin except "network". */
+    fun showPluginInspector(pluginId: String) {
+        _selectedPluginId = pluginId
         _screen.value = ProbeScreen.INSPECTOR
     }
 
@@ -48,6 +63,7 @@ internal object Probe {
 
     fun dismissAll() {
         inspectorBackHandler = null
+        _selectedPluginId = null
         _screen.value = null
     }
 

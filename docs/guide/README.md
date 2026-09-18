@@ -34,6 +34,7 @@ on their machine.
 | [troubleshooting-and-faq.md](troubleshooting-and-faq.md) | Symptom → cause → fix, FAQ, and known usage gaps |
 | [extensibility.md](extensibility.md) | Adding a new inspector plugin |
 | [development.md](development.md) | Repo layout, build/test commands, where new code should live |
+| [publishing.md](publishing.md) | Maven Central setup, release process, `com.vanniktech.maven.publish` config |
 
 ## Keeping this guide in sync
 

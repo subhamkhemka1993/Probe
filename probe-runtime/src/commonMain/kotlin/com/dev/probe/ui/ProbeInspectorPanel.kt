@@ -14,7 +14,8 @@ import com.dev.probe.ProbeScreen
 import com.dev.probe.theme.LocalProbeColors
 
 /**
- * Full-screen network inspector shell. Shown when [Probe.screen] is [ProbeScreen.INSPECTOR].
+ * Full-screen inspector shell for whichever plugin [Probe.selectedPluginId] names — shown when
+ * [Probe.screen] is [ProbeScreen.INSPECTOR].
  */
 @Composable
 internal fun ProbeInspectorPanel(modifier: Modifier = Modifier) {
@@ -30,6 +31,7 @@ internal fun ProbeInspectorPanel(modifier: Modifier = Modifier) {
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {
-        Probe.plugins.firstOrNull()?.PanelContent(onClose = { Probe.dismissAll() })
+        val plugin = Probe.plugins.firstOrNull { it.id == Probe.selectedPluginId } ?: Probe.plugins.firstOrNull()
+        plugin?.PanelContent(onClose = { Probe.dismissAll() })
     }
 }

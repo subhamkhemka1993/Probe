@@ -31,6 +31,14 @@
   accepted cost documented in the Database Capture design spec.
 - **Development-only additional dependency:** `dev.icerock.moko:permissions` (moko-permissions),
   used only by the Permissions dev panel.
+- **Sample app only:** `shared` additionally depends on `androidx.room`, `androidx.datastore`, and
+  Ktor's `cio`/`darwin` client engines to power its own demo screens (see
+  [integration-android.md](integration-android.md) / [integration-ios.md](integration-ios.md)) —
+  not part of `probe-api`/`probe-runtime`'s own dependency set documented above.
+- **Publishing tooling:** `:probe-api`/`:probe-runtime` apply `com.vanniktech.maven.publish`
+  0.33.0, configured for Maven Central — this affects only publish-time tasks
+  (`./gradlew publish*`), not `build`/`test`/`assemble`. See
+  [publishing.md](publishing.md) for the full setup.
 - **Not independently verifiable from this repository:** minimum iOS deployment target and
   minimum Xcode/Swift toolchain version for `:probe-runtime`'s own KMP targets specifically (the host
   app in this repository targets iOS 15.0, but that is a host-app setting, not something

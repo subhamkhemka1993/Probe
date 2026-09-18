@@ -4,6 +4,8 @@
 
 ## Network inspector (in-app)
 
+<img src="../media/network-inspector.png" width="220" alt="Network inspector list, showing one captured request">
+
 - **What it is:** A list + detail view of every HTTP request captured through the installed Ktor
   client hook.
 - **Why it's useful:** Debugging API integration issues on-device without a proxy or a debugger.
@@ -86,6 +88,8 @@ both platforms; gated by manifest/`Info.plist` declaration.
 
 ## DataStore inspector
 
+<img src="../media/datastore-inspector.png" width="220" alt="DataStore inspector showing a registered preferences snapshot">
+
 - **What it is:** A live-updating list of every resource registered via
   `ProbeDataStoreCapture.register`, each rendered through its own registration's redactor.
 - **Why it's useful:** Inspecting a host app's preference/settings state on-device without
@@ -104,6 +108,8 @@ both platforms; gated by manifest/`Info.plist` declaration.
 
 ## Database inspector
 
+<img src="../media/database-inspector.png" width="220" alt="Database inspector listing two registered databases"> <img src="../media/database-rows.png" width="220" alt="Database inspector showing a table's rows">
+
 - **What it is:** A read-only browser (databases → tables → rows) over every `RoomDatabase`
   registered via `ProbeDatabaseCapture.register`, including Probe's own network-call database.
 - **Why it's useful:** Inspecting a host app's persisted data on-device without a separate DB
@@ -120,6 +126,8 @@ both platforms; gated by manifest/`Info.plist` declaration.
   malformed table) renders inline as an error row instead of crashing the host app.
 
 ## Log inspector
+
+<img src="../media/logs-inspector.png" width="220" alt="Log inspector showing a captured log line">
 
 - **What it is:** A live, filterable view of the host app's own log stream, captured through
   `ProbeLogSink` — a logging-library-agnostic sink the host wires from whatever logging library
