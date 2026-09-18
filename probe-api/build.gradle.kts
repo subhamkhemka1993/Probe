@@ -4,6 +4,16 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.androidLint)
+    alias(libs.plugins.vanniktechMavenPublish)
+}
+
+mavenPublishing {
+    pom {
+        description.set(
+            "Always-present, dependency-light hooks (ProbeHttpCapture, ProbeState, ProbeConfig, " +
+                "ProbeDatabaseCapture, ProbeDataStoreCapture, ProbeLogSink) for Probe's on-device debug tooling.",
+        )
+    }
 }
 
 kotlin {

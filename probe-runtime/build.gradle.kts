@@ -9,6 +9,16 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.room)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.vanniktechMavenPublish)
+}
+
+mavenPublishing {
+    pom {
+        description.set(
+            "The debug-only implementation behind Probe: network/database/DataStore/log inspectors, the " +
+                "embedded browser inspector, and the Compose Multiplatform debug shell.",
+        )
+    }
 }
 
 kotlin {
