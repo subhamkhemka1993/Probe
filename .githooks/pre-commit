@@ -19,6 +19,12 @@ if ! scripts/check-lint-guardrails.sh; then
   exit 1
 fi
 
+# Non-negotiable: no sanctioned bypass (no SKIP_* var) for mid-block comments.
+if ! scripts/check-no-midblock-comments.sh --staged; then
+  echo "pre-commit: blocked by mid-block comment check (see above)." >&2
+  exit 1
+fi
+
 STAGED_KOTLIN="$(git diff --cached --name-only --diff-filter=ACM -- '*.kt' '*.kts' || true)"
 
 if [ -n "$STAGED_KOTLIN" ]; then

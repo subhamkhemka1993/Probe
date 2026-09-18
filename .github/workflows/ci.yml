@@ -67,6 +67,13 @@ jobs:
           fi
           scripts/check-docs-freshness.sh "$BASE" HEAD
 
+  midblock-comments:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No mid-block comments anywhere in tracked Kotlin files
+        run: scripts/check-no-midblock-comments.sh --tree
+
   build:
     runs-on: macos-latest
     steps:
