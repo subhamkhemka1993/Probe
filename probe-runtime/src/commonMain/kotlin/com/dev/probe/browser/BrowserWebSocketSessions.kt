@@ -52,11 +52,13 @@ internal class BrowserWebSocketSessions(
         }
     }
 
+    /**
+     * Awaited (not fire-and-forget on [scope]): the caller (`NetworkBrowserServer.stop()`) stops
+     * the CIO engine right after this returns, so close frames must actually be sent before then
+     * — otherwise clients see an abrupt reset instead of a graceful close.
+     */
     suspend fun closeAll() {
         val sessionsToClose = drain()
-        // Awaited (not fire-and-forget on `scope`): the caller (NetworkBrowserServer.stop())
-        // stops the CIO engine right after this returns, so close frames must actually be sent
-        // before then — otherwise clients see an abrupt reset instead of a graceful close.
         coroutineScope {
             sessionsToClose.forEach { session ->
                 launch {

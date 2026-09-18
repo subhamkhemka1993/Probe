@@ -108,6 +108,7 @@ internal class DebugSessionManagerTest {
         assertNotEquals(null, callDao.getById("call-2"))
     }
 
+    /** Simulates a second process, so a previous session exists before [DebugSessionManager.onClearData] runs. */
     @Test
     fun onClearDataResetsSessionsAndCalls() = runTest {
         val database = createDatabase()
@@ -117,7 +118,6 @@ internal class DebugSessionManagerTest {
 
         val s1 = manager.ensureInitialSession()
         callDao.insert(sampleCall(id = "call-1", sessionId = s1.id))
-        // Simulate a second process so previous exists before clear.
         createManager(database).ensureInitialSession()
 
         manager.onClearData()
