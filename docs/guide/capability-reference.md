@@ -114,6 +114,22 @@ both platforms; gated by manifest/`Info.plist` declaration.
 - **Limitations:** read-only, one page (50 rows) per table in v1; BLOB columns render as
   `[blob N bytes]` rather than their contents.
 
+## Log inspector
+
+- **What it is:** A live, filterable view of the host app's own log stream, captured through
+  `ProbeLogSink` — a logging-library-agnostic sink the host wires from whatever logging library
+  it uses.
+- **Why it's useful:** Reading recent log lines on-device without a debugger or `adb logcat`
+  attached, especially useful on iOS where there's no equivalent to `logcat`.
+- **How to use it:** Open the debug hub → tap "Logs" → search by tag or message text.
+- **Configuration:** ring buffer size is `ProbeCaptureLimits.maxLogEntries` (default 1,000),
+  internal only, not exposed to `ProbeConfig`.
+- **Platform support:** both, identical implementation (`commonMain`) — the host adapts whatever
+  logging library it uses to call `ProbeLogSink.write`.
+- **Limitations:** in-memory only, not persisted across process restarts; log lines emitted
+  before `ProbeGraphFactory.create()` installs the real writer are lost (same class of gap as
+  `ProbeHttpCapture`'s pre-installation no-op window).
+
 ## iOS vs Android Feature Matrix
 
 | Capability | iOS | Android | Notes |
@@ -131,6 +147,7 @@ both platforms; gated by manifest/`Info.plist` declaration.
 | `ProbeHttpCapture` / `ProbeState` always-present hooks | ✅ | ✅ | `:probe-api`, shared. |
 | DataStore inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDataStoreCapture` registry, no platform-specific code. |
 | Database inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDatabaseCapture` registry + `useReaderConnection`, no platform-specific code. |
+| Log inspector | ✅ | ✅ | Shared `commonMain` — `ProbeLogSink` is logging-library-agnostic, no platform-specific code. |
 | Structural release-build exclusion | — | ✅ | Not applicable on iOS — there is no build-type dependency axis to exclude a module from; iOS relies solely on the `isEnabled` runtime flag. |
 
 ---
