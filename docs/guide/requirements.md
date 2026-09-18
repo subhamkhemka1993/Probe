@@ -25,6 +25,10 @@
 - **Storage:** Room (`androidx.room`, KSP-generated) for captured network calls and sessions;
   Jetpack DataStore Preferences for debug preferences (network output mode). Both work
   cross-platform via KMP artifacts — no platform-specific database code beyond builder wiring.
+  `:probe-api` also depends on `androidx.room:room-runtime` (as `api`, no KSP/codegen) purely for
+  the `RoomDatabase` type in `ProbeDatabaseCapture.register`'s signature — every consuming app's
+  release build carries this dependency, whether or not it uses Room itself, a deliberate,
+  accepted cost documented in the Database Capture design spec.
 - **Development-only additional dependency:** `dev.icerock.moko:permissions` (moko-permissions),
   used only by the Permissions dev panel.
 - **Not independently verifiable from this repository:** minimum iOS deployment target and

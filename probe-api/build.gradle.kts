@@ -51,6 +51,7 @@ kotlin {
             api(libs.ktor.client.core)
             implementation(libs.koin.core)
             api(libs.ui)
+            api(libs.androidx.room.runtime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

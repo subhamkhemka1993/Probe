@@ -64,14 +64,18 @@ Both modules share the `com.dev.probe` / `com.dev.probe.api` package hierarchy, 
 `:probe-runtime` depends on `:probe-api` (as an `api` dependency, since `:probe-api` types appear in
 `:probe-runtime`'s own public signatures).
 
-**Settable-hook pattern.** `ProbeHttpCapture`, `ProbeState`, and `ProbeHub` are always-present
-singleton objects with a no-op default implementation. When `:probe-runtime` is initialized, it
-calls `setHook`/`setCallbacks` on them to install the real implementation; before that (release
-builds where `:probe-runtime` is absent, or before initialization on a build where it's present),
-calls into these objects are silent no-ops. This is the mechanism that lets host code (Ktor client
-setup, lifecycle observers, an "open the hub" button) call into probe *unconditionally*, without
-any `if (debugBuildType)` branching in host code — no dependency-injection framework is involved
-at all. `ProbeInstaller` uses a closely related pattern but with no meaningful no-op: it's the
+**Settable-hook pattern.** `ProbeHttpCapture`, `ProbeState`, `ProbeHub`, and `ProbeLogSink` are
+always-present singleton objects with a no-op default implementation. When `:probe-runtime` is
+initialized, it calls `setHook`/`setCallbacks`/`setWriter` on them to install the real
+implementation; before that (release builds where `:probe-runtime` is absent, or before
+initialization on a build where it's present), calls into these objects are silent no-ops. This
+is the mechanism that lets host code (Ktor client setup, lifecycle observers, an "open the hub"
+button, a logging library's writer chain) call into probe *unconditionally*, without any
+`if (debugBuildType)` branching in host code — no dependency-injection framework is involved at
+all. `ProbeDataStoreCapture` and `ProbeDatabaseCapture` follow a related shape but as *named
+registries* rather than a single hook, so a host can register any number of resources under
+distinct names — see [capability-reference.md](capability-reference.md#datastore-inspector) and
+[capability-reference.md](capability-reference.md#database-inspector). `ProbeInstaller` uses a closely related pattern but with no meaningful no-op: it's the
 seam that carries the one-time initialization call itself (see [integration-guide.md](integration-guide.md),
 Step 2), and before anything registers a real hook on it, calling `install` is simply dropped rather than
 doing something safe-but-real like the other three.

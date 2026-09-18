@@ -14,7 +14,9 @@
 - `probe-runtime/src/commonTest` / `androidHostTest` / `iosTest` — unit tests (JVM-based `commonTest`
   and `androidHostTest` cover the large majority; a small `iosTest` set exists for the
   Room/DataStore-backed repository on the iOS target specifically).
-- `probe-api/src/commonMain` / `commonTest` — the always-present hook API and its tests.
+- `probe-api/src/commonMain` / `commonTest` — the always-present hook API and its tests. Its
+  `build.gradle.kts` depends on `androidx.room:room-runtime` (`api`, no KSP) purely for the
+  `RoomDatabase` type in `ProbeDatabaseCapture` — see [requirements.md](requirements.md).
 
 **Build:**
 ```
