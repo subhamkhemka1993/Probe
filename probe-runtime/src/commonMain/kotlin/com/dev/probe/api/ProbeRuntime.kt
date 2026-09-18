@@ -1,5 +1,6 @@
 package com.dev.probe.api
 
+import com.dev.probe.internal.PROBE_SELF_DATABASE_NAME
 import com.dev.probe.internal.ProbeGraphFactory
 import com.dev.probe.internal.ProbePlatformHolder
 import com.dev.probe.internal.ProbeServices
@@ -54,6 +55,8 @@ object ProbeRuntime {
             ProbeState.clearCallbacks()
             ProbeHub.clearHook()
             ProbePlatformHolder.clear()
+            ProbeDatabaseCapture.unregister(PROBE_SELF_DATABASE_NAME)
+            ProbeLogSink.clearWriter()
             services = null
         }
     }

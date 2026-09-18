@@ -82,7 +82,9 @@ doing something safe-but-real like the other three.
 
 **Runtime lifecycle.** `ProbeRuntime.initialize(config, platform, scope)` builds the full
 dependency graph (database, repository, browser controller, notifier) exactly once per process
-and installs the hooks described above; `ProbeRuntime.shutdown()` tears it all down. A host
+and installs the hooks described above; `ProbeRuntime.shutdown()` tears it all down, including
+unregistering Probe's own database from `ProbeDatabaseCapture` and clearing `ProbeLogSink`'s
+writer, so neither is left pointing at a torn-down `ProbeServices` instance. A host
 triggers `initialize` exactly once, via `ProbeInstaller.install(config, platform)` on Android or
 directly via `installProbeTools(config, platform)` on iOS (see [integration-guide.md](integration-guide.md),
 Step 2) — never by constructing `ProbeRuntime` or any dependency-injection module — and never calls
