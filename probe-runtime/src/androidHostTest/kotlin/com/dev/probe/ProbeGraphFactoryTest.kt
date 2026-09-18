@@ -4,8 +4,11 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.dev.probe.api.NoOpHttpClientDebugHook
 import com.dev.probe.api.ProbeConfig
+import com.dev.probe.api.ProbeDatabaseCapture
 import com.dev.probe.api.ProbeHttpCapture
+import com.dev.probe.api.ProbeLogSink
 import com.dev.probe.api.ProbePlatformContext
+import com.dev.probe.internal.PROBE_SELF_DATABASE_NAME
 import com.dev.probe.internal.ProbeGraphFactory
 import com.dev.probe.internal.ProbePlatformHolder
 import kotlin.test.assertEquals
@@ -30,6 +33,8 @@ class ProbeGraphFactoryTest {
     fun tearDown() {
         ProbeHttpCapture.setHook(NoOpHttpClientDebugHook)
         ProbePlatformHolder.clear()
+        ProbeDatabaseCapture.unregister(PROBE_SELF_DATABASE_NAME)
+        ProbeLogSink.clearWriter()
     }
 
     @Test
@@ -42,7 +47,7 @@ class ProbeGraphFactoryTest {
             )
         assertNotNull(services.networkDebugRepository)
         assertFalse(services.outputController.restoreScheduled)
-        assertEquals(1, services.plugins.size)
+        assertEquals(4, services.plugins.size)
     }
 
     @Test
@@ -58,8 +63,8 @@ class ProbeGraphFactoryTest {
         assertNotNull(services.preferencesStore)
         assertNotNull(services.browserController)
         assertNotNull(services.sessionManager)
-        assertEquals(1, services.plugins.size)
-        assertEquals("network", services.plugins.first().id)
+        assertEquals(4, services.plugins.size)
+        assertEquals(listOf("network", "datastore", "database", "logs"), services.plugins.map { it.id })
     }
 
     @Test

@@ -1,26 +1,40 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.dev.probe.internal
 
 import com.dev.probe.ProbeCaptureLimits
 import com.dev.probe.api.HttpClientDebugHook
 import com.dev.probe.api.NoOpHttpClientDebugHook
 import com.dev.probe.api.ProbeConfig
+import com.dev.probe.api.ProbeDatabaseCapture
 import com.dev.probe.api.ProbeHttpCapture
+import com.dev.probe.api.ProbeLogSink
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.api.createProbeNotifier
 import com.dev.probe.browser.LocalAddressProvider
 import com.dev.probe.browser.NetworkBrowserConfig
 import com.dev.probe.browser.NetworkBrowserController
+import com.dev.probe.datastore.DataStoreInspectorPluginUi
+import com.dev.probe.dbinspector.DatabaseInspectorPluginUi
+import com.dev.probe.logs.LogEntry
+import com.dev.probe.logs.LogInspectorPluginUi
+import com.dev.probe.logs.LogRingBuffer
 import com.dev.probe.network.NetworkDebugHook
 import com.dev.probe.network.NetworkDebugPluginUi
 import com.dev.probe.network.NetworkDebugRepository
 import com.dev.probe.policy.NetworkOutputController
 import com.dev.probe.prefs.DebugPreferencesStore
 import com.dev.probe.session.DebugSessionManager
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CoroutineScope
+
+internal const val PROBE_SELF_DATABASE_NAME = "Probe"
 
 internal object ProbeGraphFactory {
     fun create(config: ProbeConfig, platform: ProbePlatformContext, scope: CoroutineScope): ProbeServices {
         val database = createDatabase(platform)
+        ProbeDatabaseCapture.register(PROBE_SELF_DATABASE_NAME, database)
         val dao = database.networkCallDao()
         val sessionManager = DebugSessionManager(database.debugSessionDao(), dao)
         val debugConfig = ProbeCaptureLimits()
@@ -64,9 +78,17 @@ internal object ProbeGraphFactory {
             )
         if (config.isEnabled()) notifierBridge.start()
 
+        val logRingBuffer = LogRingBuffer(capacity = debugConfig.maxLogEntries)
+        ProbeLogSink.setWriter { severity, tag, message, throwable ->
+            logRingBuffer.add(LogEntry(severity, tag, message, throwable, Clock.System.now().toEpochMilliseconds()))
+        }
+
         val plugins =
             listOf(
                 NetworkDebugPluginUi(repository = repository, sessionManager = sessionManager),
+                DataStoreInspectorPluginUi(),
+                DatabaseInspectorPluginUi(),
+                LogInspectorPluginUi(ringBuffer = logRingBuffer),
             )
 
         return ProbeServices(
