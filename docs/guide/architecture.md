@@ -87,7 +87,11 @@ doing something safe-but-real like the other three.
 dependency graph (database, repository, browser controller, notifier) exactly once per process
 and installs the hooks described above; `ProbeRuntime.shutdown()` tears it all down, including
 unregistering Probe's own database from `ProbeDatabaseCapture` and clearing `ProbeLogSink`'s
-writer, so neither is left pointing at a torn-down `ProbeServices` instance. A host
+writer, so neither is left pointing at a torn-down `ProbeServices` instance. `isEnabled` is read
+once at the top of graph construction and reused throughout — installing the real HTTP hook,
+registering Probe's own database, and installing the real log writer all gate on that single
+captured value, so a flag flip mid-construction can't produce a torn state where only some of
+these are wired up. A host
 triggers `initialize` exactly once, via `ProbeInstaller.install(config, platform)` on Android or
 directly via `installProbeTools(config, platform)` on iOS (see [integration-guide.md](integration-guide.md),
 Step 2) — never by constructing `ProbeRuntime` or any dependency-injection module — and never calls

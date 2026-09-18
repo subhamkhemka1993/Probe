@@ -68,6 +68,45 @@ class ProbeGraphFactoryTest {
     }
 
     @Test
+    fun create_whenEnabled_registersDatabaseAndInstallsLogWriter() {
+        var sentinelInvoked = false
+        ProbeLogSink.setWriter { _, _, _, _ -> sentinelInvoked = true }
+
+        ProbeGraphFactory.create(
+            config = ProbeConfig(isEnabled = { true }),
+            platform = platform,
+            scope = scope,
+        )
+
+        assertTrue(ProbeDatabaseCapture.snapshot().containsKey(PROBE_SELF_DATABASE_NAME))
+
+        // create() must have overwritten the pre-existing sentinel writer with its own real
+        // one, so this call no longer reaches the sentinel.
+        ProbeLogSink.write("INFO", "tag", "hello", null)
+        assertFalse(sentinelInvoked)
+    }
+
+    @Test
+    fun create_whenDisabled_doesNotRegisterDatabaseOrInstallLogWriter() {
+        var sentinelInvoked = false
+        ProbeLogSink.setWriter { _, _, _, _ -> sentinelInvoked = true }
+
+        ProbeGraphFactory.create(
+            config = ProbeConfig(isEnabled = { false }),
+            platform = platform,
+            scope = scope,
+        )
+
+        assertFalse(ProbeDatabaseCapture.snapshot().containsKey(PROBE_SELF_DATABASE_NAME))
+
+        // If create() had installed its own real writer despite isEnabled=false, this call would
+        // route to that writer instead of the sentinel installed above, and sentinelInvoked would
+        // stay false.
+        ProbeLogSink.write("INFO", "tag", "message", null)
+        assertTrue(sentinelInvoked)
+    }
+
+    @Test
     fun create_whenEnabled_schedulesRestore() {
         val services =
             ProbeGraphFactory.create(

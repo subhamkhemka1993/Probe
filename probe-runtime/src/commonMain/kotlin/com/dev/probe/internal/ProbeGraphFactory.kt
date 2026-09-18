@@ -33,8 +33,17 @@ internal const val PROBE_SELF_DATABASE_NAME = "Probe"
 
 internal object ProbeGraphFactory {
     fun create(config: ProbeConfig, platform: ProbePlatformContext, scope: CoroutineScope): ProbeServices {
+        // Captured once rather than re-evaluated at each call site below: config.isEnabled is
+        // documented to be safely backed by dynamic/remote state, so re-reading it repeatedly
+        // across this otherwise-atomic construction risks a torn initialization (e.g. the
+        // database getting registered under one value and the log writer under another) if the
+        // flag flips mid-call.
+        val isEnabled = config.isEnabled()
+
         val database = createDatabase(platform)
-        ProbeDatabaseCapture.register(PROBE_SELF_DATABASE_NAME, database)
+        if (isEnabled) {
+            ProbeDatabaseCapture.register(PROBE_SELF_DATABASE_NAME, database)
+        }
         val dao = database.networkCallDao()
         val sessionManager = DebugSessionManager(database.debugSessionDao(), dao)
         val debugConfig = ProbeCaptureLimits()
@@ -58,14 +67,14 @@ internal object ProbeGraphFactory {
             )
 
         val hook: HttpClientDebugHook =
-            if (config.isEnabled()) {
+            if (isEnabled) {
                 NetworkDebugHook(repository, debugConfig, sessionManager, scope)
             } else {
                 NoOpHttpClientDebugHook
             }
         ProbeHttpCapture.setHook(hook)
         ProbePlatformHolder.init(platform)
-        if (config.isEnabled()) outputController.scheduleRestore()
+        if (isEnabled) outputController.scheduleRestore()
 
         val notifier = createProbeNotifier(platform)
         val notifierBridge =
@@ -76,11 +85,13 @@ internal object ProbeGraphFactory {
                 notifier = notifier,
                 scope = scope,
             )
-        if (config.isEnabled()) notifierBridge.start()
+        if (isEnabled) notifierBridge.start()
 
         val logRingBuffer = LogRingBuffer(capacity = debugConfig.maxLogEntries)
-        ProbeLogSink.setWriter { severity, tag, message, throwable ->
-            logRingBuffer.add(LogEntry(severity, tag, message, throwable, Clock.System.now().toEpochMilliseconds()))
+        if (isEnabled) {
+            ProbeLogSink.setWriter { severity, tag, message, throwable ->
+                logRingBuffer.add(LogEntry(severity, tag, message, throwable, Clock.System.now().toEpochMilliseconds()))
+            }
         }
 
         val plugins =
