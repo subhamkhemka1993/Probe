@@ -97,7 +97,10 @@ both platforms; gated by manifest/`Info.plist` declaration.
 - **Platform support:** both, identical implementation (`commonMain`).
 - **Limitations:** read-only — no editing a value from the panel. The default redactor is plain
   `toString()`; a host registering a type with sensitive fields must pass its own redactor (see
-  `ProbeDataStoreCapture.register`'s KDoc) — Probe cannot detect this for the host.
+  `ProbeDataStoreCapture.register`'s KDoc) — Probe cannot detect this for the host. The
+  registered-resource list itself updates live (not just each resource's value), and a
+  redactor/flow failure for one registration renders as an error value for that row only, rather
+  than blanking or crashing the whole panel.
 
 ## Database inspector
 
