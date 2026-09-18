@@ -99,6 +99,21 @@ both platforms; gated by manifest/`Info.plist` declaration.
   `toString()`; a host registering a type with sensitive fields must pass its own redactor (see
   `ProbeDataStoreCapture.register`'s KDoc) — Probe cannot detect this for the host.
 
+## Database inspector
+
+- **What it is:** A read-only browser (databases → tables → rows) over every `RoomDatabase`
+  registered via `ProbeDatabaseCapture.register`, including Probe's own network-call database.
+- **Why it's useful:** Inspecting a host app's persisted data on-device without a separate DB
+  browser tool or a rooted/jailbroken device.
+- **How to use it:** Open the debug hub → tap "Database" → pick a registered database → pick a
+  table → browse its first 50 rows.
+- **Configuration:** none exposed to `ProbeConfig`; databases opt in individually via
+  `ProbeDatabaseCapture.register(name, database)`.
+- **Platform support:** both, identical implementation (`commonMain`) — table/column/row
+  discovery uses Room's public `useReaderConnection`/`usePrepared` API, not a Dao.
+- **Limitations:** read-only, one page (50 rows) per table in v1; BLOB columns render as
+  `[blob N bytes]` rather than their contents.
+
 ## iOS vs Android Feature Matrix
 
 | Capability | iOS | Android | Notes |
@@ -115,6 +130,7 @@ both platforms; gated by manifest/`Info.plist` declaration.
 | Theming override | ✅ | ✅ | Shared. |
 | `ProbeHttpCapture` / `ProbeState` always-present hooks | ✅ | ✅ | `:probe-api`, shared. |
 | DataStore inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDataStoreCapture` registry, no platform-specific code. |
+| Database inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDatabaseCapture` registry + `useReaderConnection`, no platform-specific code. |
 | Structural release-build exclusion | — | ✅ | Not applicable on iOS — there is no build-type dependency axis to exclude a module from; iOS relies solely on the `isEnabled` runtime flag. |
 
 ---
