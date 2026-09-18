@@ -97,7 +97,10 @@ both platforms; gated by manifest/`Info.plist` declaration.
 - **Platform support:** both, identical implementation (`commonMain`).
 - **Limitations:** read-only — no editing a value from the panel. The default redactor is plain
   `toString()`; a host registering a type with sensitive fields must pass its own redactor (see
-  `ProbeDataStoreCapture.register`'s KDoc) — Probe cannot detect this for the host.
+  `ProbeDataStoreCapture.register`'s KDoc) — Probe cannot detect this for the host. The
+  registered-resource list itself updates live (not just each resource's value), and a
+  redactor/flow failure for one registration renders as an error value for that row only, rather
+  than blanking or crashing the whole panel.
 
 ## Database inspector
 
@@ -112,7 +115,9 @@ both platforms; gated by manifest/`Info.plist` declaration.
 - **Platform support:** both, identical implementation (`commonMain`) — table/column/row
   discovery uses Room's public `useReaderConnection`/`usePrepared` API, not a Dao.
 - **Limitations:** read-only, one page (50 rows) per table in v1; BLOB columns render as
-  `[blob N bytes]` rather than their contents.
+  `[blob N bytes]` rather than their contents. The registered-database list updates live if a
+  database registers/unregisters while the panel is open; a table/row read failure (e.g. a
+  malformed table) renders inline as an error row instead of crashing the host app.
 
 ## Log inspector
 
@@ -128,7 +133,9 @@ both platforms; gated by manifest/`Info.plist` declaration.
   logging library it uses to call `ProbeLogSink.write`.
 - **Limitations:** in-memory only, not persisted across process restarts; log lines emitted
   before `ProbeGraphFactory.create()` installs the real writer are lost (same class of gap as
-  `ProbeHttpCapture`'s pre-installation no-op window).
+  `ProbeHttpCapture`'s pre-installation no-op window). A captured exception renders as a one-line
+  `ExceptionClass: message` summary, not the full stack trace — a full trace would blow up that
+  row's height unbounded in a list meant for a quick scroll.
 
 ## iOS vs Android Feature Matrix
 

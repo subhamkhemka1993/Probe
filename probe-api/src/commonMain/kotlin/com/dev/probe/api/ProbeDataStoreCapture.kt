@@ -1,7 +1,10 @@
 package com.dev.probe.api
 
-import kotlin.concurrent.Volatile
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * Host integration point for exposing an observable preference/settings snapshot to Probe's
@@ -9,8 +12,16 @@ import kotlinx.coroutines.flow.Flow
  * the backing store — same precedent as [ProbeHttpCapture.setHook].
  */
 object ProbeDataStoreCapture {
-    @Volatile
-    private var registrations: Map<String, RegisteredStore> = emptyMap()
+    private val _registrations = MutableStateFlow<Map<String, RegisteredStore>>(emptyMap())
+
+    /**
+     * Public (not `internal`) because the caller (`:probe-runtime`'s `DataStoreInspectorPluginUi`)
+     * lives in a separate Gradle module from this object — Kotlin's `internal` visibility is
+     * module-scoped, not package-scoped. Same precedent as [ProbeHttpCapture.setHook]. Exposed as
+     * a [StateFlow] (not just [snapshot]) so the inspector UI can react to a resource registering
+     * or unregistering after the panel is already open.
+     */
+    val registrations: StateFlow<Map<String, RegisteredStore>> = _registrations.asStateFlow()
 
     /**
      * Registers [snapshot] under [name] for live display in the DataStore inspector panel.
@@ -22,19 +33,15 @@ object ProbeDataStoreCapture {
      * are sensitive; only the caller does.
      */
     fun register(name: String, snapshot: Flow<Any?>, redactor: (Any?) -> String = { it.toString() }) {
-        registrations = registrations + (name to RegisteredStore(snapshot, redactor))
+        _registrations.update { it + (name to RegisteredStore(snapshot, redactor)) }
     }
 
     fun unregister(name: String) {
-        registrations = registrations - name
+        _registrations.update { it - name }
     }
 
-    /**
-     * Public (not `internal`) because the caller (`:probe-runtime`'s `DataStoreInspectorPluginUi`)
-     * lives in a separate Gradle module from this object — Kotlin's `internal` visibility is
-     * module-scoped, not package-scoped. Same precedent as [ProbeHttpCapture.setHook].
-     */
-    fun snapshot(): Map<String, RegisteredStore> = registrations
+    /** Point-in-time read of [registrations], for callers that don't need to observe changes. */
+    fun snapshot(): Map<String, RegisteredStore> = _registrations.value
 }
 
 class RegisteredStore(val flow: Flow<Any?>, val redactor: (Any?) -> String)

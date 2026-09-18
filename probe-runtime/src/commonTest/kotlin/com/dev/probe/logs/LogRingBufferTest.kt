@@ -39,4 +39,19 @@ class LogRingBufferTest {
 
         assertEquals(listOf("b", "c"), buffer.entries.value.map { it.message })
     }
+
+    @Test
+    fun idsStayUniqueAndIncreasingAcrossEviction() {
+        val buffer = LogRingBuffer(capacity = 2)
+
+        buffer.add(entry("a"))
+        buffer.add(entry("b"))
+        buffer.add(entry("c"))
+        buffer.add(entry("d"))
+
+        val ids = buffer.entries.value.map { it.id }
+        assertEquals(listOf("c", "d"), buffer.entries.value.map { it.message })
+        assertEquals(2, ids.distinct().size, "ids must stay unique after eviction")
+        assertEquals(ids.sorted(), ids, "ids must stay increasing after eviction, not reset")
+    }
 }

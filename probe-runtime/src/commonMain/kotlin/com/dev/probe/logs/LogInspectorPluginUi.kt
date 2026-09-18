@@ -66,7 +66,7 @@ internal class LogInspectorPluginUi(private val ringBuffer: LogRingBuffer) : Pro
                             onClick = {},
                             leftContent = {
                                 Text(
-                                    text = "[${entry.severity}] ${entry.tag}: ${entry.message}",
+                                    text = entry.toDisplayText(),
                                     style = LocalProbeTypography.current.bodySmall,
                                     color = LocalProbeColors.current.textPrimary,
                                 )
@@ -78,4 +78,15 @@ internal class LogInspectorPluginUi(private val ringBuffer: LogRingBuffer) : Pro
             }
         }
     }
+}
+
+/**
+ * A one-line summary, not the full [Throwable.stackTraceToString] — this renders inline inside a
+ * `LazyColumn` row, and a deep/long stack trace there would blow up that row's height unbounded
+ * in a list meant for a quick scroll, not a full trace viewer.
+ */
+private fun LogEntry.toDisplayText(): String {
+    val base = "[$severity] $tag: $message"
+    val throwableSummary = throwable?.let { "${it::class.simpleName}: ${it.message}" }
+    return if (throwableSummary == null) base else "$base — $throwableSummary"
 }

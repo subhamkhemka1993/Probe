@@ -74,7 +74,10 @@ button, a logging library's writer chain) call into probe *unconditionally*, wit
 `if (debugBuildType)` branching in host code — no dependency-injection framework is involved at
 all. `ProbeDataStoreCapture` and `ProbeDatabaseCapture` follow a related shape but as *named
 registries* rather than a single hook, so a host can register any number of resources under
-distinct names — see [capability-reference.md](capability-reference.md#datastore-inspector) and
+distinct names. Both expose their registry as a `StateFlow<Map<String, ...>>` (`registrations`),
+not just a point-in-time `snapshot()`, so their inspector UIs stay live if a resource
+registers/unregisters after the panel is already open — see
+[capability-reference.md](capability-reference.md#datastore-inspector) and
 [capability-reference.md](capability-reference.md#database-inspector). `ProbeInstaller` uses a closely related pattern but with no meaningful no-op: it's the
 seam that carries the one-time initialization call itself (see [integration-guide.md](integration-guide.md),
 Step 2), and before anything registers a real hook on it, calling `install` is simply dropped rather than
@@ -84,7 +87,11 @@ doing something safe-but-real like the other three.
 dependency graph (database, repository, browser controller, notifier) exactly once per process
 and installs the hooks described above; `ProbeRuntime.shutdown()` tears it all down, including
 unregistering Probe's own database from `ProbeDatabaseCapture` and clearing `ProbeLogSink`'s
-writer, so neither is left pointing at a torn-down `ProbeServices` instance. A host
+writer, so neither is left pointing at a torn-down `ProbeServices` instance. `isEnabled` is read
+once at the top of graph construction and reused throughout — installing the real HTTP hook,
+registering Probe's own database, and installing the real log writer all gate on that single
+captured value, so a flag flip mid-construction can't produce a torn state where only some of
+these are wired up. A host
 triggers `initialize` exactly once, via `ProbeInstaller.install(config, platform)` on Android or
 directly via `installProbeTools(config, platform)` on iOS (see [integration-guide.md](integration-guide.md),
 Step 2) — never by constructing `ProbeRuntime` or any dependency-injection module — and never calls

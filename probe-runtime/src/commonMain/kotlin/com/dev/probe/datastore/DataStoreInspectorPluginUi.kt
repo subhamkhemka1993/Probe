@@ -13,36 +13,52 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dev.probe.api.ProbeDataStoreCapture
+import com.dev.probe.api.RegisteredStore
 import com.dev.probe.plugin.ProbePlugin
 import com.dev.probe.theme.LocalProbeColors
 import com.dev.probe.theme.LocalProbeTypography
 import com.dev.probe.ui.primitives.ProbeDivider
 import com.dev.probe.ui.primitives.ProbeListRow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 /**
  * [ProbePlugin] for the DataStore inspector: renders one live-updating row per resource
  * registered via [ProbeDataStoreCapture.register], each formatted through
  * [DataStoreSnapshotFormatter] using that registration's own redactor.
+ *
+ * [registrations] is injected (defaulting to the real [ProbeDataStoreCapture.registrations]) so
+ * this plugin can be exercised in tests against a fake registry rather than the global singleton.
  */
-internal class DataStoreInspectorPluginUi : ProbePlugin {
+internal class DataStoreInspectorPluginUi(
+    private val registrations: StateFlow<Map<String, RegisteredStore>> = ProbeDataStoreCapture.registrations,
+) : ProbePlugin {
     override val id = "datastore"
     override val displayName = "DataStore"
     override val description = "Inspect registered DataStore/preference snapshots"
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Composable
     override fun PanelContent(onClose: () -> Unit) {
         val rowsFlow =
             remember {
-                val registrations = ProbeDataStoreCapture.snapshot().entries.toList()
-                if (registrations.isEmpty()) {
-                    flowOf(emptyList())
-                } else {
-                    combine(registrations.map { it.value.flow }) { values ->
-                        registrations.mapIndexed { index, entry ->
-                            DataStoreSnapshotFormatter.format(entry.key, values[index], entry.value.redactor)
-                        }
+                registrations.flatMapLatest { registered ->
+                    val entries = registered.entries.toList()
+                    if (entries.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        combine(
+                            entries.map { (name, store) ->
+                                store.flow
+                                    .map { value -> DataStoreSnapshotFormatter.format(name, value, store.redactor) }
+                                    .catch { e -> emit(DataStoreRow(name, "⚠ ${e.message ?: "failed to read"}")) }
+                            },
+                        ) { rows -> rows.toList() }
                     }
                 }
             }
