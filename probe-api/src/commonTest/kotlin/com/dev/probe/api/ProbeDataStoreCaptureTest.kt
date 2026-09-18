@@ -1,11 +1,26 @@
 package com.dev.probe.api
 
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.flowOf
 
 class ProbeDataStoreCaptureTest {
+    /**
+     * Cleans up every name any test in this class registers, unconditionally — unregistering an
+     * absent name is a no-op. Runs even if a test fails an assertion partway through, unlike a
+     * manual unregister() as the test's last line (which a failed assertion above it would skip,
+     * leaking that registration into every later test in this JVM).
+     */
+    @AfterTest
+    fun tearDown() {
+        ProbeDataStoreCapture.unregister("UserPreference")
+        ProbeDataStoreCapture.unregister("Store")
+        ProbeDataStoreCapture.unregister("Temp")
+        ProbeDataStoreCapture.unregister("Plain")
+    }
+
     @Test
     fun noRegistrationsByDefault() {
         assertTrue(ProbeDataStoreCapture.snapshot().isEmpty())
@@ -16,8 +31,6 @@ class ProbeDataStoreCaptureTest {
         ProbeDataStoreCapture.register("UserPreference", flowOf("value"))
 
         assertTrue(ProbeDataStoreCapture.snapshot().containsKey("UserPreference"))
-
-        ProbeDataStoreCapture.unregister("UserPreference")
     }
 
     @Test
@@ -28,8 +41,6 @@ class ProbeDataStoreCaptureTest {
         val redactor = ProbeDataStoreCapture.snapshot().getValue("Store").redactor
 
         assertEquals("custom", redactor(null))
-
-        ProbeDataStoreCapture.unregister("Store")
     }
 
     @Test
@@ -47,7 +58,16 @@ class ProbeDataStoreCaptureTest {
         val redactor = ProbeDataStoreCapture.snapshot().getValue("Plain").redactor
         assertEquals("hello", redactor("hello"))
         assertEquals("null", redactor(null))
+    }
 
-        ProbeDataStoreCapture.unregister("Plain")
+    @Test
+    fun registrationsStateFlowReflectsRegisterAndUnregister() {
+        assertTrue(ProbeDataStoreCapture.registrations.value.isEmpty())
+
+        ProbeDataStoreCapture.register("UserPreference", flowOf("value"))
+        assertTrue(ProbeDataStoreCapture.registrations.value.containsKey("UserPreference"))
+
+        ProbeDataStoreCapture.unregister("UserPreference")
+        assertTrue(!ProbeDataStoreCapture.registrations.value.containsKey("UserPreference"))
     }
 }

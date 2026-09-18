@@ -1,7 +1,10 @@
 package com.dev.probe.api
 
 import androidx.room.RoomDatabase
-import kotlin.concurrent.Volatile
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /**
  * Host integration point for exposing a Room database to Probe's Database inspector plugin.
@@ -11,21 +14,25 @@ import kotlin.concurrent.Volatile
  * declaration or DAO of any kind is required on the registered database's own class.
  */
 object ProbeDatabaseCapture {
-    @Volatile
-    private var registrations: Map<String, RoomDatabase> = emptyMap()
-
-    fun register(name: String, database: RoomDatabase) {
-        registrations = registrations + (name to database)
-    }
-
-    fun unregister(name: String) {
-        registrations = registrations - name
-    }
+    private val _registrations = MutableStateFlow<Map<String, RoomDatabase>>(emptyMap())
 
     /**
      * Public (not `internal`) because the caller (`:probe-runtime`'s `DatabaseInspectorPluginUi`)
      * lives in a separate Gradle module from this object — Kotlin's `internal` visibility is
-     * module-scoped, not package-scoped. Same precedent as [ProbeHttpCapture.setHook].
+     * module-scoped, not package-scoped. Same precedent as [ProbeHttpCapture.setHook]. Exposed as
+     * a [StateFlow] (not just [snapshot]) so the inspector UI can react to a database registering
+     * or unregistering after the panel is already open.
      */
-    fun snapshot(): Map<String, RoomDatabase> = registrations
+    val registrations: StateFlow<Map<String, RoomDatabase>> = _registrations.asStateFlow()
+
+    fun register(name: String, database: RoomDatabase) {
+        _registrations.update { it + (name to database) }
+    }
+
+    fun unregister(name: String) {
+        _registrations.update { it - name }
+    }
+
+    /** Point-in-time read of [registrations], for callers that don't need to observe changes. */
+    fun snapshot(): Map<String, RoomDatabase> = _registrations.value
 }

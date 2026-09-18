@@ -74,7 +74,10 @@ button, a logging library's writer chain) call into probe *unconditionally*, wit
 `if (debugBuildType)` branching in host code — no dependency-injection framework is involved at
 all. `ProbeDataStoreCapture` and `ProbeDatabaseCapture` follow a related shape but as *named
 registries* rather than a single hook, so a host can register any number of resources under
-distinct names — see [capability-reference.md](capability-reference.md#datastore-inspector) and
+distinct names. Both expose their registry as a `StateFlow<Map<String, ...>>` (`registrations`),
+not just a point-in-time `snapshot()`, so their inspector UIs stay live if a resource
+registers/unregisters after the panel is already open — see
+[capability-reference.md](capability-reference.md#datastore-inspector) and
 [capability-reference.md](capability-reference.md#database-inspector). `ProbeInstaller` uses a closely related pattern but with no meaningful no-op: it's the
 seam that carries the one-time initialization call itself (see [integration-guide.md](integration-guide.md),
 Step 2), and before anything registers a real hook on it, calling `install` is simply dropped rather than
