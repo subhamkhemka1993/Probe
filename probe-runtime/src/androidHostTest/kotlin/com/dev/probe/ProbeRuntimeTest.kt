@@ -30,13 +30,15 @@ class ProbeRuntimeTest {
     }
     private val config = ProbeConfig(isEnabled = { true })
 
+    /**
+     * [scope] is a real (non-virtual-time) scope; [ProbeRuntime.shutdown] only clears
+     * `ProbeRuntime`'s own state, not this scope's job — cancel it too so nothing it launched
+     * (e.g. via `scheduleRestore()`) can keep running past this test method and throw
+     * asynchronously during a later, unrelated test.
+     */
     @After
     fun tearDown() {
         ProbeRuntime.shutdown()
-        // scope is a real (non-virtual-time) scope; shutdown() only clears ProbeRuntime's own
-        // state, not this scope's job — cancel it too so nothing it launched (e.g. via
-        // scheduleRestore()) can keep running past this test method and throw asynchronously
-        // during a later, unrelated test.
         scope.cancel()
         ProbeHub.clearHook()
     }
@@ -133,13 +135,13 @@ class ProbeRuntimeTest {
         }
     }
 
+    /** [ProbeHub.openHub] delegates to `ProbeLauncher.openHub` — verifying it doesn't throw is
+     * the practical check available at this layer. */
     @Test
     fun initialize_installsProbeHubHook() {
         ProbeRuntime.initialize(config, platform, scope)
 
         assertTrue(ProbeHub.isEnabled())
-        // ProbeHub.openHub delegates to ProbeLauncher.openHub — verifying it doesn't throw
-        // is the practical check available at this layer.
         ProbeHub.openHub(platform)
     }
 

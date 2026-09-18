@@ -32,28 +32,30 @@ class ProbeRuntimeStateWiringTest {
         ProbePlatformHolder.clear()
     }
 
+    /** Must be a silent no-op post-shutdown, not a stale forward into torn-down services. */
     @Test
     fun shutdown_clearsProbeStateCallbacks() {
         ProbeRuntime.initialize(ProbeConfig(isEnabled = { true }), platform, scope)
         ProbeRuntime.shutdown()
 
-        // Must be a silent no-op post-shutdown, not a stale forward into torn-down services.
         ProbeState.onAppBackgrounded()
         ProbeState.onAppForegrounded()
     }
 
+    /**
+     * `isEnabled = false` so [com.dev.probe.internal.ProbeGraphFactory.create] does NOT eagerly
+     * call `outputController.scheduleRestore()` itself — `restoreScheduled` starts false,
+     * isolating the effect of the [ProbeState]-routed call below from `create()`'s own side
+     * effects. That call is routed through [ProbeState], not called directly on [ProbeRuntime],
+     * proving `initialize()` actually installed a real (non-default) `Callbacks` instance that
+     * forwards to `ProbeRuntime.onAppForegrounded()`, rather than merely not throwing.
+     */
     @Test
     fun initialize_installsCallbacksThatDelegateToProbeRuntime() {
-        // isEnabled = false so ProbeGraphFactory.create does NOT eagerly call
-        // outputController.scheduleRestore() itself — restoreScheduled starts false, isolating
-        // the effect of the ProbeState-routed call below from create()'s own side effects.
         ProbeRuntime.initialize(ProbeConfig(isEnabled = { false }), platform, scope)
         val outputController = ProbeRuntime.services().outputController
         assertFalse(outputController.restoreScheduled)
 
-        // Routed through ProbeState, not called directly on ProbeRuntime — proving
-        // initialize() actually installed a real (non-default) Callbacks instance that forwards
-        // to ProbeRuntime.onAppForegrounded(), rather than merely not throwing.
         ProbeState.onAppForegrounded()
 
         assertTrue(outputController.restoreScheduled)

@@ -120,7 +120,9 @@ internal class CaptureNotifierBridgeTest {
     /**
      * A `debounce()`-based pipeline resets its timer on every emission and can go silent
      * indefinitely under traffic faster than the window — this proves the actual `sample()`
-     * pipeline keeps surfacing periodic updates across several tick boundaries instead.
+     * pipeline keeps surfacing periodic updates across several tick boundaries instead, by
+     * driving continuous traffic spaced faster than the tick period, spanning several tick
+     * boundaries.
      */
     @Test
     fun sustainedTrafficStillProducesPeriodicUpdates() = runTest {
@@ -139,7 +141,6 @@ internal class CaptureNotifierBridgeTest {
         advanceTimeBy(SAMPLE_SETTLE_MS) // crosses the first tick (empty state) — absorbed below.
         notifier.showCount = 0
 
-        // Continuous traffic, spaced faster than the tick period, spanning several tick boundaries.
         repeat(SUSTAINED_TRAFFIC_UPDATE_COUNT) { index ->
             repository.insertPending(
                 sampleCall(id = "call-$index", timestampMillis = nowMillis + index, status = 200),

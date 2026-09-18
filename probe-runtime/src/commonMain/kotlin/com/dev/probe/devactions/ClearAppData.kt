@@ -2,6 +2,7 @@ package com.dev.probe.devactions
 
 import com.dev.probe.api.ProbePlatformContext
 import com.dev.probe.browser.NetworkBrowserController
+import com.dev.probe.exceptions.CrashLogStore
 import com.dev.probe.internal.CaptureNotifierBridge
 import com.dev.probe.session.DebugSessionManager
 
@@ -36,8 +37,10 @@ internal suspend fun resetProbeRuntimeState(
     sessionManager: DebugSessionManager,
     browserController: NetworkBrowserController,
     notifierBridge: CaptureNotifierBridge?,
+    crashLogStore: CrashLogStore,
 ) {
     sessionManager.onClearData()
     browserController.stop()
     notifierBridge?.stop()
+    crashLogStore.clear()
 }

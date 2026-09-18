@@ -22,6 +22,13 @@ import com.dev.probe.ui.ProbeApp
  * Must stay public (not `internal`) so the merged manifest can resolve `.shell.ProbeActivity`.
  */
 class ProbeActivity : ComponentActivity() {
+    /**
+     * Mirrors the iOS presenter: once the user has seen a non-null [Probe.screen], a later null
+     * means they dismissed the hub/inspector from within the shell, so this activity should
+     * finish rather than leave a blank window behind. The `sawScreen` flag tracked inside guards
+     * against finishing on the initial null value, before the `LaunchedEffect(screen)` effect
+     * has had a chance to route to Hub/Inspector.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!ProbeRuntime.isEnabled()) {
@@ -45,11 +52,6 @@ class ProbeActivity : ComponentActivity() {
                     ProbeStartScreen.Inspector -> Probe.showInspector()
                 }
             }
-            // Mirrors the iOS presenter: once the user has seen a non-null screen, a later
-            // null means they dismissed the hub/inspector from within the shell, so this
-            // activity should finish rather than leave a blank window behind. `sawScreen`
-            // guards against finishing on the initial null value, before the effect above
-            // has had a chance to route to Hub/Inspector.
             LaunchedEffect(Unit) {
                 var sawScreen = false
                 Probe.screen.collect { current ->

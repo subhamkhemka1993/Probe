@@ -36,6 +36,7 @@ class ProbeStateTest {
         ProbeState.clearCallbacks()
     }
 
+    /** After [ProbeState.clearCallbacks], subsequent lifecycle calls must not throw. */
     @Test
     fun clearCallbacks_restoresNoOp() {
         ProbeState.setCallbacks(
@@ -47,7 +48,6 @@ class ProbeStateTest {
         )
         ProbeState.clearCallbacks()
 
-        // Must not throw.
         ProbeState.onAppBackgrounded()
         ProbeState.onAppForegrounded()
     }

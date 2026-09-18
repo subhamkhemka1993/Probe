@@ -55,3 +55,8 @@ more detail — invoke it whenever you touch `:probe-api`/`:probe-runtime` sourc
 - Most new capability code belongs in `commonMain` with `expect`/`actual` only for the genuinely
   platform-specific edge, to avoid widening the iOS/Android feature gap further than the
   platforms themselves force (see `docs/guide/development.md`).
+- **No inline comments marking a mid-function correction.** Comments belong at class-level,
+  variable/property-level, and function/method-level (including test functions) to explain
+  non-obvious intent or invariants — never scattered inside a function/test/class body to flag or
+  narrate a line or block that was just fixed/changed. This is non-negotiable: it accumulates into
+  noise that pollutes the function over successive edits.

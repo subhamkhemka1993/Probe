@@ -111,10 +111,19 @@ internal class DebugSessionManager(private val sessionDao: DebugSessionDao, priv
         return session
     }
 
-    private companion object {
-        val PENDING_SESSION =
+    companion object {
+        /**
+         * Id of the pre-bootstrap placeholder session. Never appears in [availableSessions] (it
+         * is not a persisted row), so callers that key long-lived data off session id — e.g.
+         * [com.dev.probe.exceptions.CrashLogStore.pruneToSessions] — must keep entries stamped
+         * with this id in addition to whatever [availableSessions] currently reports, or that data
+         * is deleted the moment the first real session is created.
+         */
+        const val PENDING_SESSION_ID = "pending"
+
+        private val PENDING_SESSION =
             DebugSession(
-                id = "pending",
+                id = PENDING_SESSION_ID,
                 label = "Pending",
                 startedAtMillis = 0L,
                 endedAtMillis = null,

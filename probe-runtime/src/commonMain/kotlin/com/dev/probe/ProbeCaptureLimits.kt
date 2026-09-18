@@ -2,6 +2,11 @@ package com.dev.probe
 
 import androidx.compose.ui.unit.dp
 
-internal data class ProbeCaptureLimits(val maxEntries: Int = 250, val maxBodyBytes: Int = 250_000, val maxLogEntries: Int = 1_000)
+internal data class ProbeCaptureLimits(
+    val maxEntries: Int = 250,
+    val maxBodyBytes: Int = 250_000,
+    val maxLogEntries: Int = 1_000,
+    val maxExceptionEntries: Int = 50,
+)
 
 internal val DebugToolbarIconSize = 28.dp

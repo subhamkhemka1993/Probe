@@ -57,6 +57,8 @@ object ProbeRuntime {
             ProbePlatformHolder.clear()
             ProbeDatabaseCapture.unregister(PROBE_SELF_DATABASE_NAME)
             ProbeLogSink.clearWriter()
+            services?.uninstallCrashHook?.invoke()
+            ProbeCrashCapture.clearReporter()
             services = null
         }
     }

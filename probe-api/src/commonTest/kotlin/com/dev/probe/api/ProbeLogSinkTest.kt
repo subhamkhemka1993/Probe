@@ -21,12 +21,12 @@ class ProbeLogSinkTest {
         ProbeLogSink.clearWriter()
     }
 
+    /** After [ProbeLogSink.clearWriter], a subsequent write must not throw. */
     @Test
     fun clearWriterRestoresTheNoOpDefault() {
         ProbeLogSink.setWriter { _, _, _, _ -> error("must not be called after clear") }
         ProbeLogSink.clearWriter()
 
-        // Must not throw.
         ProbeLogSink.write("INFO", "tag", "message", null)
     }
 }

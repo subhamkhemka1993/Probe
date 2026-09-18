@@ -29,6 +29,11 @@ fun installProbeSample() {
 is this sample app's own demo code — see the equivalent note in
 [integration-android.md](integration-android.md).
 
+If your app also installs its own crash-reporting SDK (Crashlytics, Bugsnag, Sentry, etc.), call
+`installProbeTools` **before** initializing that SDK — most such SDKs install their own
+uncaught-exception handler and, unless they explicitly chain to whatever handler was already
+installed, doing so after Probe would silently replace Probe's hook.
+
 ```swift
 // iosApp/iosApp/iOSApp.swift — this repository's real sample
 @main
