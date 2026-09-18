@@ -133,7 +133,9 @@ both platforms; gated by manifest/`Info.plist` declaration.
   logging library it uses to call `ProbeLogSink.write`.
 - **Limitations:** in-memory only, not persisted across process restarts; log lines emitted
   before `ProbeGraphFactory.create()` installs the real writer are lost (same class of gap as
-  `ProbeHttpCapture`'s pre-installation no-op window).
+  `ProbeHttpCapture`'s pre-installation no-op window). A captured exception renders as a one-line
+  `ExceptionClass: message` summary, not the full stack trace — a full trace would blow up that
+  row's height unbounded in a list meant for a quick scroll.
 
 ## iOS vs Android Feature Matrix
 
