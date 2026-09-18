@@ -112,7 +112,9 @@ both platforms; gated by manifest/`Info.plist` declaration.
 - **Platform support:** both, identical implementation (`commonMain`) — table/column/row
   discovery uses Room's public `useReaderConnection`/`usePrepared` API, not a Dao.
 - **Limitations:** read-only, one page (50 rows) per table in v1; BLOB columns render as
-  `[blob N bytes]` rather than their contents.
+  `[blob N bytes]` rather than their contents. The registered-database list updates live if a
+  database registers/unregisters while the panel is open; a table/row read failure (e.g. a
+  malformed table) renders inline as an error row instead of crashing the host app.
 
 ## Log inspector
 

@@ -1,9 +1,11 @@
 package com.dev.probe.dbinspector
 
+import androidx.room.useWriterConnection
 import com.dev.probe.db.NetworkCallEntity
 import com.dev.probe.network.createTestProbeDatabase
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import org.junit.runner.RunWith
@@ -80,5 +82,25 @@ internal class SqliteRowReaderTest {
         assertEquals(1, firstPage.size)
         assertEquals(1, secondPage.size)
         assertTrue(firstPage.single()["id"] != secondPage.single()["id"])
+    }
+
+    @Test
+    fun readRowsRendersBlobAndFloatColumnsAndNullsCorrectly() = runTest {
+        val database = createTestProbeDatabase()
+        database.useWriterConnection { transactor ->
+            transactor.usePrepared("CREATE TABLE blob_test (id INTEGER PRIMARY KEY, payload BLOB, ratio REAL, label TEXT)") {
+                it.step()
+            }
+            transactor.usePrepared("INSERT INTO blob_test (id, payload, ratio, label) VALUES (1, ?, 3.5, NULL)") { statement ->
+                statement.bindBlob(1, byteArrayOf(1, 2, 3, 4, 5))
+                statement.step()
+            }
+        }
+
+        val row = SqliteRowReader.readRows(database, "blob_test", limit = 10, offset = 0).single()
+
+        assertEquals("[blob 5 bytes]", row["payload"])
+        assertEquals("3.5", row["ratio"])
+        assertNull(row["label"])
     }
 }
