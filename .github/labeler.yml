@@ -1,0 +1,39 @@
+# Path -> label map for actions/labeler (see .github/workflows/labeler.yml).
+# Keep in sync with the module layout described in docs/guide/development.md.
+
+probe-api:
+  - changed-files:
+      - any-glob-to-any-file: "probe-api/**"
+
+probe-runtime:
+  - changed-files:
+      - any-glob-to-any-file: "probe-runtime/**"
+
+android:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "probe-runtime/src/androidMain/**"
+          - "probe-runtime/src/androidHostTest/**"
+          - "probe-runtime/src/androidDeviceTest/**"
+          - "androidApp/**"
+
+ios:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "probe-runtime/src/iosMain/**"
+          - "probe-runtime/src/iosTest/**"
+          - "iosApp/**"
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: "docs/**"
+
+ci-build:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - "build.gradle.kts"
+          - "settings.gradle.kts"
+          - "gradle/**"
+          - "gradle.properties"
+          - "scripts/**"
