@@ -5,5 +5,5 @@ import com.dev.probe.api.ProbeHub
 import com.dev.probe.api.ProbePlatformContext
 
 fun MainViewController() = ComposeUIViewController {
-    App(onOpenHub = { ProbeHub.openHub(ProbePlatformContext()) })
+    App(resources = sampleAppResources, onOpenHub = { ProbeHub.openHub(ProbePlatformContext()) })
 }

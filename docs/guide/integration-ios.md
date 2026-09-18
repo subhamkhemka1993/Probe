@@ -13,13 +13,21 @@ function without a wrapper object, this repository's own sample wraps it in a sm
 
 ```kotlin
 // shared/src/iosMain/kotlin/.../ProbeBootstrap.kt — this repository's real sample wrapper
+internal var sampleAppResources: SampleAppResources? = null
+
 fun installProbeSample() {
+    val platform = ProbePlatformContext()
     installProbeTools(
         config = ProbeConfig(isEnabled = { true }),
-        platform = ProbePlatformContext(),
+        platform = platform,
     )
+    sampleAppResources = installSampleResources(platform)
 }
 ```
+
+`installSampleResources` (in `shared`'s `com.dev.probe.sample` package, not part of Probe itself)
+is this sample app's own demo code — see the equivalent note in
+[integration-android.md](integration-android.md).
 
 ```swift
 // iosApp/iosApp/iOSApp.swift — this repository's real sample

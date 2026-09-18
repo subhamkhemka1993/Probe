@@ -20,13 +20,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val platform = ProbePlatformContext(this)
         ProbeInstaller.install(
             config = ProbeConfig(isEnabled = { true }),
-            platform = ProbePlatformContext(this),
+            platform = platform,
         )
+        val resources = installSampleResources(platform)
 
         setContent {
-            App(onOpenHub = { ProbeHub.openHub(ProbePlatformContext(this)) })
+            App(resources = resources, onOpenHub = { ProbeHub.openHub(ProbePlatformContext(this)) })
         }
     }
 }
@@ -35,7 +37,11 @@ class MainActivity : ComponentActivity() {
 A real app would more likely make this call from `Application.onCreate()` rather than an
 `Activity`, so it fires exactly once per process regardless of which screen launches first — the
 sample uses `MainActivity` only because the wizard-generated sample has no custom `Application`
-class.
+class. `installSampleResources` (in `shared`'s `com.dev.probe.sample` package, not part of Probe
+itself) is this sample app's own demo code — it builds a tiny Room database, a DataStore, and a
+Ktor client and registers/installs each with Probe so the inspectors have real data to show; see
+[usage-examples.md](usage-examples.md) for the underlying `register`/`installCapture` calls it
+makes.
 
 **Ktor capture wiring** — identical to iOS, in your `HttpClientConfig` builder:
 `ProbeHttpCapture.run { installCapture() }`.
