@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Summarize
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import com.dev.probe.ui.primitives.ProbeListRow
 
 private fun hubPluginIcon(pluginId: String): ImageVector = when (pluginId) {
     "network" -> Icons.Filled.SwapHoriz
+    "exceptions" -> Icons.Filled.Warning
     else -> Icons.Filled.Info
 }
 

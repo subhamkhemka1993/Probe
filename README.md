@@ -42,6 +42,9 @@ present, dependency-light, no-op by default) and `probe-runtime` (the real imple
   of any registered preferences/settings `Flow`.
 - **[Log inspector](docs/guide/capability-reference.md#log-inspector)** — your app's own log
   stream, filterable by tag or message, fed by whatever logging library you already use.
+- **[Exceptions & Crashes inspector](docs/guide/capability-reference.md#exceptions--crashes-inspector)** —
+  automatic capture of uncaught exceptions, plus `reportCaught` for exceptions you catch yourself,
+  with full expandable stack traces.
 - **[Export](docs/guide/capability-reference.md#export)** — turn a session's captured calls into
   JSON, HAR, or a `curl` command.
 - **[Dev actions](docs/guide/integration-android.md)** — clear app data, inspect runtime

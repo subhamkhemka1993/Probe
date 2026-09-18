@@ -2,6 +2,7 @@ package com.dev.probe.internal
 
 import com.dev.probe.api.ProbeConfig
 import com.dev.probe.browser.NetworkBrowserController
+import com.dev.probe.exceptions.CrashLogStore
 import com.dev.probe.network.NetworkDebugRepository
 import com.dev.probe.plugin.ProbePlugin
 import com.dev.probe.policy.NetworkOutputController
@@ -16,5 +17,7 @@ internal data class ProbeServices(
     val preferencesStore: DebugPreferencesStore,
     val sessionManager: DebugSessionManager,
     val plugins: List<ProbePlugin>,
+    val crashLogStore: CrashLogStore,
     val notifierBridge: CaptureNotifierBridge? = null,
+    val uninstallCrashHook: (() -> Unit)? = null,
 )

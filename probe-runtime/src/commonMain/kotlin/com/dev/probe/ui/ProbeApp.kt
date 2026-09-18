@@ -102,6 +102,7 @@ internal fun ProbeApp(services: ProbeServices) {
                                     sessionManager = services.sessionManager,
                                     browserController = services.browserController,
                                     notifierBridge = services.notifierBridge,
+                                    crashLogStore = services.crashLogStore,
                                 )
                                 clearAppDataResult = clearAppData(ProbePlatformHolder.requirePlatform())
                             }

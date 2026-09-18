@@ -145,6 +145,32 @@ both platforms; gated by manifest/`Info.plist` declaration.
   `ExceptionClass: message` summary, not the full stack trace — a full trace would blow up that
   row's height unbounded in a list meant for a quick scroll.
 
+## Exceptions & Crashes inspector
+
+- **What it is:** Automatic capture of uncaught (fatal) exceptions, plus
+  `ProbeCrashCapture.reportCaught(throwable)` for host-caught, non-fatal exceptions you still want
+  visible — a list view with expandable full stack traces, tagged to the same current/previous
+  session concept the network inspector uses.
+- **Why it's useful:** Seeing what crashed on-device, including the exact stack trace, without a
+  debugger attached or reaching for a separate crash-reporting dashboard.
+- **How to use it:** Nothing to wire for the automatic (fatal) path — installed once by
+  `ProbeInstaller.install`/`installProbeTools`. For non-fatal exceptions your own code already
+  catches, call `ProbeCrashCapture.reportCaught(throwable)` at the catch site. Open the debug hub
+  → tap "Exceptions" → tap a row to expand its full trace.
+- **Configuration:** none exposed to `ProbeConfig`; entry cap is
+  `ProbeCaptureLimits.maxExceptionEntries` (default 50), internal only.
+- **Platform support:** fatal-path capture is **partial on iOS** — see the matrix below.
+  Non-fatal (`reportCaught`) capture is identical on both platforms (`commonMain`).
+- **Limitations:** iOS's automatic handler (`NSSetUncaughtExceptionHandler`) only catches
+  Objective-C/Swift-visible `NSException`s, not signal-based traps (SIGSEGV/SIGABRT/SIGILL) — how
+  most actual Kotlin/Native fatal crashes manifest. ANR detection is not implemented. Entries are
+  persisted to a small synchronous local file (not Room — an async database write can't be
+  guaranteed to finish before the crashing process dies), so a crash survives the process restart
+  it causes. If your app installs its own crash-reporting SDK (Crashlytics, Bugsnag, etc.) *after*
+  calling `ProbeInstaller.install`/`installProbeTools`, and that SDK does not itself chain to the
+  previously-installed handler, it will silently replace Probe's — install Probe last, or confirm
+  your SDK chains.
+
 ## iOS vs Android Feature Matrix
 
 | Capability | iOS | Android | Notes |
@@ -163,6 +189,8 @@ both platforms; gated by manifest/`Info.plist` declaration.
 | DataStore inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDataStoreCapture` registry, no platform-specific code. |
 | Database inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDatabaseCapture` registry + `useReaderConnection`, no platform-specific code. |
 | Log inspector | ✅ | ✅ | Shared `commonMain` — `ProbeLogSink` is logging-library-agnostic, no platform-specific code. |
+| Exceptions & Crashes — automatic (fatal) | ⚠️ | ✅ | iOS only catches Obj-C/Swift `NSException`s, not signal traps — see Limitations above. |
+| Exceptions & Crashes — `reportCaught` (non-fatal) | ✅ | ✅ | Shared `commonMain`. |
 | Structural release-build exclusion | — | ✅ | Not applicable on iOS — there is no build-type dependency axis to exclude a module from; iOS relies solely on the `isEnabled` runtime flag. |
 
 ---

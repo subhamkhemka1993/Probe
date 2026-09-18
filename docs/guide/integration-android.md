@@ -43,6 +43,11 @@ Ktor client and registers/installs each with Probe so the inspectors have real d
 [usage-examples.md](usage-examples.md) for the underlying `register`/`installCapture` calls it
 makes.
 
+If your app also installs its own crash-reporting SDK (Crashlytics, Bugsnag, Sentry, etc.), call
+`ProbeInstaller.install` **before** initializing that SDK — most such SDKs install their own
+uncaught-exception handler and, unless they explicitly chain to whatever handler was already
+installed, doing so after Probe would silently replace Probe's hook.
+
 **Ktor capture wiring** — identical to iOS, in your `HttpClientConfig` builder:
 `ProbeHttpCapture.run { installCapture() }`.
 

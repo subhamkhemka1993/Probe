@@ -19,6 +19,8 @@ import com.dev.probe.browser.NetworkBrowserController
 import com.dev.probe.browser.NetworkCallDto
 import com.dev.probe.db.NetworkCallDao
 import com.dev.probe.db.NetworkCallEntity
+import com.dev.probe.exceptions.CrashEntry
+import com.dev.probe.exceptions.CrashLogStore
 import com.dev.probe.internal.CaptureNotifierBridge
 import com.dev.probe.network.NetworkDebugRepository
 import com.dev.probe.prefs.DebugPreferencesStore
@@ -96,10 +98,25 @@ class ClearAppDataTest {
                 scope = backgroundScope,
             )
 
-        resetProbeRuntimeState(sessionManager, browserController, notifierBridge)
+        val crashLogStore = CrashLogStore(platform, capacity = 50)
+        crashLogStore.append(
+            CrashEntry(
+                id = 0L,
+                sessionId = sessionManager.activeSession().value.id,
+                timestampMillis = 1L,
+                threadName = "main",
+                isFatal = false,
+                exceptionClassName = "RuntimeException",
+                message = "boom",
+                stackTrace = "",
+            ),
+        )
+
+        resetProbeRuntimeState(sessionManager, browserController, notifierBridge, crashLogStore)
 
         assertEquals(1, sessionManager.availableSessions().first().size)
         assertEquals(SessionRole.CURRENT, sessionManager.activeSession().value.role)
+        assertEquals(emptyList(), crashLogStore.entries.value, "resetProbeRuntimeState must clear the crash log")
         assertIs<BrowserConnectionInfo.Stopped>(browserController.connectionInfo.value)
         assertTrue(notifier.hideCalled)
     }

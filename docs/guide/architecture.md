@@ -6,7 +6,8 @@ probe ships as two Gradle/KMP modules with a deliberate size split:
 
 - **`:probe-api`** — a tiny, dependency-light module meant to be present in *every* build
   variant on *every* platform. It holds only settable-hook objects and configuration types:
-  `ProbeHttpCapture` (Ktor capture hook), `ProbeState` (app-lifecycle hook), `ProbeConfig`
+  `ProbeHttpCapture` (Ktor capture hook), `ProbeCrashCapture` (exception/crash capture hook),
+  `ProbeState` (app-lifecycle hook), `ProbeConfig`
   (the single host-configuration seam), `ProbeThemeOverride`, and the `ProbeInspector` marker
   interface. It has no database, no embedded server, and no UI toolkit beyond `compose.ui`'s
   `Color` type (needed only for the theme override). A host's networking and app-lifecycle code
