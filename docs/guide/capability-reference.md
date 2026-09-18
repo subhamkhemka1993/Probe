@@ -84,6 +84,21 @@ both platforms; gated by manifest/`Info.plist` declaration.
 - **Platform support:** both.
 - **Limitations:** colors only — typography is fixed and not overridable.
 
+## DataStore inspector
+
+- **What it is:** A live-updating list of every resource registered via
+  `ProbeDataStoreCapture.register`, each rendered through its own registration's redactor.
+- **Why it's useful:** Inspecting a host app's preference/settings state on-device without
+  adding host-specific debug UI.
+- **How to use it:** Open the debug hub → tap "DataStore" → the panel lists one row per
+  registered resource, updating live as the underlying `Flow` emits.
+- **Configuration:** none exposed to `ProbeConfig`; each resource opts in individually via
+  `ProbeDataStoreCapture.register(name, snapshot, redactor)`.
+- **Platform support:** both, identical implementation (`commonMain`).
+- **Limitations:** read-only — no editing a value from the panel. The default redactor is plain
+  `toString()`; a host registering a type with sensitive fields must pass its own redactor (see
+  `ProbeDataStoreCapture.register`'s KDoc) — Probe cannot detect this for the host.
+
 ## iOS vs Android Feature Matrix
 
 | Capability | iOS | Android | Notes |
@@ -99,6 +114,7 @@ both platforms; gated by manifest/`Info.plist` declaration.
 | Permissions inspector | ✅ | ✅ | Same UI/controller contract; declaration source differs (`Info.plist` vs. manifest). |
 | Theming override | ✅ | ✅ | Shared. |
 | `ProbeHttpCapture` / `ProbeState` always-present hooks | ✅ | ✅ | `:probe-api`, shared. |
+| DataStore inspector | ✅ | ✅ | Shared `commonMain` — `ProbeDataStoreCapture` registry, no platform-specific code. |
 | Structural release-build exclusion | — | ✅ | Not applicable on iOS — there is no build-type dependency axis to exclude a module from; iOS relies solely on the `isEnabled` runtime flag. |
 
 ---
